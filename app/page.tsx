@@ -418,6 +418,67 @@ function PhraseBand() {
   );
 }
 
+// ── Sticky top bar — wordmark + a persistent "Book" CTA, the one piece of
+// chrome on the page. Deliberately absent over the hero (the hero has its
+// own "Book the show" button and shouldn't compete with a bar), then fades
+// in the moment the hero scrolls out and back out if you scroll home. An
+// IntersectionObserver on the hero drives it rather than a scroll listener
+// so it costs nothing per frame. z-100: above all page content, below both
+// the curtain reveal (900) and the wand cursor (998/999). ───────────────────
+function StickyBar() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const hero = document.getElementById("magician-hero");
+    if (!hero) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setVisible(!entry.isIntersecting),
+      { threshold: 0 },
+    );
+    io.observe(hero);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-x-0 top-0 h-[60px]"
+      style={{
+        zIndex: 100,
+        background: hexToRgba(BG, 0.85),
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderBottom: `1px solid ${BORDER}`,
+        opacity: visible ? 1 : 0,
+        transition: "opacity 200ms ease-out",
+        pointerEvents: visible ? "auto" : "none",
+      }}
+      aria-hidden={!visible}
+    >
+      <div className={`${wrap} flex h-full items-center justify-between`}>
+        <span
+          className="text-[0.8rem] font-medium tracking-[0.12em] md:text-[0.9rem]"
+          style={{ color: TEXT }}
+        >
+          {NAME}
+        </span>
+        <a
+          href="#magician-book"
+          tabIndex={visible ? undefined : -1}
+          className="magician-curtain-btn text-[0.85rem] font-semibold uppercase tracking-[0.1em]"
+          style={{
+            background: BG_ELEVATED,
+            color: TEXT,
+            border: `1px solid ${ACCENT}`,
+            padding: "10px 24px",
+          }}
+        >
+          Book
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // ── Hero — the shuffle (§16d.1). Full-bleed dark, curtain-wash glow (from
 // below + both top corners, like drapes framing the stage) + drifting
 // embers. This is one of exactly two sections that gets the red curtain
@@ -428,6 +489,7 @@ const HERO_VIDEO_SRC = ""; // set to a real clip path when Noah has one
 function Hero() {
   return (
     <section
+      id="magician-hero"
       className="relative flex w-full items-end overflow-hidden"
       style={{ minHeight: "100svh", background: BG }}
     >
@@ -474,6 +536,12 @@ function Hero() {
             <br />
             believe your eyes.
           </p>
+          <p
+            className="mt-8 text-[0.75rem] uppercase tracking-[0.15em]"
+            style={{ color: TEXT_MUTED }}
+          >
+            Long Island · New York · Tri-State Area
+          </p>
           <a
             href="#magician-book"
             className="magician-curtain-btn mt-10 inline-block px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] transition-transform duration-200 hover:scale-[1.03]"
@@ -488,6 +556,44 @@ function Hero() {
         >
           Scroll
         </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Recently Performed At — a proof strip, not a full section: half the
+// usual vertical rhythm, plain BG, gold ◆ separators. Same visual family as
+// the venue row that used to live further down the page. ────────────────────
+const PERFORMED_AT = [
+  "Roslyn Country Club",
+  "Long Island Corporate Holiday Parties",
+  "Nassau County Weddings",
+  "Private Estate Events",
+  "Tri-State Gala Fundraisers",
+];
+function RecentlyPerformedAt() {
+  return (
+    <section className="relative w-full py-[44px] md:py-[75px]" style={{ background: BG }}>
+      <div className={`${wrap} text-center`}>
+        <RiseFromDark>
+          <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
+            — Recently Performed At —
+          </span>
+          <div className="mx-auto mt-7 flex max-w-3xl flex-wrap items-center justify-center gap-x-3 gap-y-2">
+            {PERFORMED_AT.map((v, i) => (
+              <span key={v} className="flex items-center gap-3">
+                <span className="text-[13px] md:text-[17px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+                  {v}
+                </span>
+                {i < PERFORMED_AT.length - 1 && (
+                  <span aria-hidden style={{ color: ACCENT, opacity: 0.5 }}>
+                    ◆
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        </RiseFromDark>
       </div>
     </section>
   );
@@ -616,6 +722,106 @@ function TheExperience() {
         <p className="mt-10 text-center text-[13px]" style={{ color: TEXT_MUTED }}>
           Tap a card to reveal it.
         </p>
+      </RiseFromDark>
+    </Section>
+  );
+}
+
+// ── See It Live — the real performance reel plus three short clips. All
+// four slots are wired for real media but empty today: the main one renders
+// a <video> when REEL_VIDEO_SRC is set and a plain "Video coming soon" card
+// until then; the three clips are already <a> tags so dropping in real
+// YouTube URLs is a one-line change each. Plain BG, no curtain wash. ────────
+const REEL_VIDEO_SRC = ""; // drop the performance clip path in here
+const REEL_VIDEO_POSTER = ""; // and a poster frame here
+const REEL_CLIPS: Array<{ label: string; href: string }> = [
+  { label: "Close-up trick", href: "#" },
+  { label: "Mentalism moment", href: "#" },
+  { label: "Stage reveal", href: "#" },
+];
+
+function SeeItLive() {
+  return (
+    <Section className="text-center">
+      <style>{`
+        .reel-clip {
+          transition: border-color 200ms ease-out, transform 200ms ease-out;
+        }
+        .reel-clip-link:hover .reel-clip { border-color: ${ACCENT} !important; transform: translateY(-4px); }
+        .reel-clip-link:hover .reel-clip-play { opacity: 0.8; }
+      `}</style>
+      <RiseFromDark>
+        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
+          — See It Live —
+        </span>
+        <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+          Watch the room lose it.
+        </h2>
+      </RiseFromDark>
+
+      <RiseFromDark delay={0.12} className="mt-12">
+        <div
+          className="relative mx-auto w-full max-w-[900px] overflow-hidden"
+          style={{
+            aspectRatio: "16 / 9",
+            background: BG_ELEVATED,
+            border: `1px solid ${hexToRgba(ACCENT, 0.3)}`,
+            borderRadius: 4,
+          }}
+        >
+          {REEL_VIDEO_SRC ? (
+            <video
+              className="h-full w-full"
+              src={REEL_VIDEO_SRC}
+              poster={REEL_VIDEO_POSTER}
+              controls
+              preload="metadata"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-[13px]" style={{ color: TEXT_MUTED }}>
+                Video coming soon
+              </span>
+            </div>
+          )}
+        </div>
+        <p className="mt-4 text-[13px]" style={{ color: TEXT_MUTED }}>
+          Filmed live at a corporate holiday show, Long Island · December 2025.
+        </p>
+      </RiseFromDark>
+
+      <RiseFromDark delay={0.18} className="mt-12">
+        <div className="mx-auto flex max-w-[900px] flex-col gap-6 sm:flex-row sm:justify-center">
+          {REEL_CLIPS.map((clip) => (
+            <a
+              key={clip.label}
+              href={clip.href}
+              data-video="placeholder"
+              className="reel-clip-link block w-full sm:max-w-[280px] sm:flex-1"
+            >
+              <div
+                className="reel-clip relative flex w-full items-center justify-center"
+                style={{
+                  aspectRatio: "16 / 9",
+                  background: BG_ELEVATED,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: 4,
+                }}
+              >
+                <span
+                  aria-hidden
+                  className="reel-clip-play text-[22px]"
+                  style={{ color: ACCENT, opacity: 0.4, transition: "opacity 200ms ease-out" }}
+                >
+                  ▶
+                </span>
+              </div>
+              <p className="mt-3 text-[14px]" style={{ color: TEXT }}>
+                {clip.label}
+              </p>
+            </a>
+          ))}
+        </div>
       </RiseFromDark>
     </Section>
   );
@@ -753,6 +959,173 @@ function Witnessed() {
   );
 }
 
+// ── What It Costs — real starting numbers, stated plainly (§12: no fake
+// urgency, no "call for pricing" games). Cards get zero red and no dramatic
+// hover — just a border brightening, since this section's job is legibility,
+// not spectacle. ────────────────────────────────────────────────────────────
+const PACKAGES = [
+  {
+    name: "Close-Up Hour",
+    price: "From $500",
+    desc: "One hour of strolling, table-to-table magic during cocktails or dinner.",
+  },
+  {
+    name: "Stage Show",
+    price: "From $1,200",
+    desc: "A full 30–45 minute interactive stage set, built for the whole room.",
+  },
+  {
+    name: "Full Evening",
+    price: "From $2,000",
+    desc: "Close-up during cocktails + a stage show for the main event.",
+  },
+];
+function WhatItCosts() {
+  return (
+    <Section className="text-center" id="magician-pricing">
+      <style>{`
+        .pkg-card { transition: border-color 200ms ease-out; }
+        .pkg-card:hover { border-color: ${ACCENT} !important; }
+      `}</style>
+      <RiseFromDark>
+        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
+          — What It Costs —
+        </span>
+        <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+          Straight numbers. No mystery here.
+        </h2>
+        <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+          Every event is different, but here&apos;s roughly where it starts. Real
+          quotes come after we talk about your date and room.
+        </p>
+      </RiseFromDark>
+      <div className="mt-14 grid gap-6 md:grid-cols-3">
+        {PACKAGES.map((p, i) => (
+          <RiseFromDark key={p.name} delay={Math.min(i * 0.08, 0.2)}>
+            <div
+              className="pkg-card flex h-full flex-col items-center p-8"
+              style={{
+                background: BG_ELEVATED,
+                border: `1px solid ${hexToRgba(ACCENT, 0.3)}`,
+                borderRadius: 4,
+              }}
+            >
+              <span aria-hidden style={{ color: ACCENT, fontSize: 20, opacity: 0.7 }}>
+                ✦
+              </span>
+              <h3 className="mt-4 text-[20px] leading-[1.2]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+                {p.name}
+              </h3>
+              <p className="mt-3 text-[1.5rem] tracking-[0.04em]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+                {p.price}
+              </p>
+              <p className="mt-4 text-[0.85rem] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+                {p.desc}
+              </p>
+            </div>
+          </RiseFromDark>
+        ))}
+      </div>
+      <RiseFromDark delay={0.24}>
+        <p className="mt-10 text-[13px]" style={{ color: TEXT_MUTED }}>
+          Weddings, multi-hour events, and out-of-state travel quoted separately.
+        </p>
+      </RiseFromDark>
+    </Section>
+  );
+}
+
+// ── FAQ — the objections that actually block a booking, answered before the
+// form. One open at a time; each question is a real <button> so it's
+// keyboard-operable, and the answer is height-animated via a grid-rows
+// trick (no fixed max-height guesswork, animates to true content height). ───
+const FAQS = [
+  {
+    q: "How much does it cost?",
+    a: "Close-up hour starts at $500. Stage shows start at $1,200. A full evening (close-up during cocktails + stage show for the main event) starts at $2,000. Weddings, multi-hour events, and travel outside the tri-state area are quoted separately. I'll always give you a real number after we talk about your date and room — no vague “starting from” games.",
+  },
+  {
+    q: "What's the difference between close-up and a stage show?",
+    a: "Close-up is table-to-table — I'm three feet from you, doing cards, coins, and mentalism in your hands. It's for cocktail hours, dinner, and moments where people are already talking. A stage show is the whole room watching one thing at once — bigger reveals, more theater, works as the main event or after dinner. A lot of clients do both.",
+  },
+  {
+    q: "How far in advance should I book?",
+    a: "Weekends in November, December, May, and June book up 3–6 months out. Off-peak dates, 4–8 weeks is usually fine. If your date's within two weeks, still ask — sometimes it works.",
+  },
+  {
+    q: "How far do you travel?",
+    a: "Long Island, NYC, and the tri-state area are the home base — no travel fee. Anywhere beyond, I'll quote travel with the booking. I've worked events in Boston, Philly, and DC without issue.",
+  },
+  {
+    q: "Can you customize for our company or event theme?",
+    a: "Yes. Corporate events can have branded moments, product mentions, or a personal reveal built into the show — it takes about a week of prep. Weddings can include something specific to the couple. Just tell me what you want to land, and I'll build toward it.",
+  },
+  {
+    q: "What do you need from the venue?",
+    a: "For close-up, nothing — I bring everything. For a stage show: a small performance area (~10x10 feet is plenty), a microphone if the room is larger than 30 people, and stage lighting if the venue has it. I'll walk your venue coordinator through the details once we're booked.",
+  },
+];
+function Faq() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <Section id="magician-faq">
+      <RiseFromDark>
+        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
+          — Questions People Ask —
+        </span>
+        <h2 className="mt-4 text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+          Answered before you ask.
+        </h2>
+      </RiseFromDark>
+      <RiseFromDark delay={0.12} className="mx-auto mt-12 max-w-3xl">
+        {FAQS.map((item, i) => {
+          const isOpen = open === i;
+          return (
+            <div key={item.q} style={{ borderBottom: `1px solid ${BORDER}` }}>
+              <button
+                type="button"
+                onClick={() => setOpen(isOpen ? null : i)}
+                aria-expanded={isOpen}
+                aria-controls={`faq-answer-${i}`}
+                className="flex w-full items-center justify-between gap-6 py-5 text-left"
+              >
+                <span className="text-[17px] leading-[1.35] md:text-[19px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+                  {item.q}
+                </span>
+                <span
+                  aria-hidden
+                  className="shrink-0 text-[18px]"
+                  style={{
+                    color: ACCENT,
+                    transform: isOpen ? "rotate(135deg)" : "rotate(0deg)",
+                    transition: "transform 250ms ease-out",
+                  }}
+                >
+                  +
+                </span>
+              </button>
+              <div
+                id={`faq-answer-${i}`}
+                style={{
+                  display: "grid",
+                  gridTemplateRows: isOpen ? "1fr" : "0fr",
+                  transition: "grid-template-rows 250ms ease-out",
+                }}
+              >
+                <div style={{ overflow: "hidden" }}>
+                  <p className="pb-6 pr-8 text-[15px] leading-[1.75]" style={{ color: TEXT_MUTED }}>
+                    {item.a}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </RiseFromDark>
+    </Section>
+  );
+}
+
 // ── About — a mysterious bio (§16e.6). No invented awards/credits. ──────────
 function About() {
   return (
@@ -794,35 +1167,6 @@ function About() {
           </p>
         </RiseFromDark>
       </div>
-    </Section>
-  );
-}
-
-// ── Where it works — event types, no real venues (§16e.7). ──────────────────
-const VENUES = ["Corporate events", "Galas & fundraisers", "Private parties", "Weddings", "Theaters & live shows"];
-function WhereItWorks() {
-  return (
-    <Section className="text-center">
-      <RiseFromDark>
-        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
-          — Where It Works —
-        </span>
-        <h2 className="mx-auto mt-4 max-w-2xl text-[32px] uppercase leading-[1.1] md:text-[46px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-          Any room with people paying attention.
-        </h2>
-      </RiseFromDark>
-      <RiseFromDark delay={0.1}>
-        <div className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-x-3 gap-y-4">
-          {VENUES.map((v, i) => (
-            <span key={v} className="flex items-center gap-3">
-              <span className="text-[15px] md:text-[18px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-                {v}
-              </span>
-              {i < VENUES.length - 1 && <span style={{ color: ACCENT }}>◆</span>}
-            </span>
-          ))}
-        </div>
-      </RiseFromDark>
     </Section>
   );
 }
@@ -929,6 +1273,10 @@ function Booking() {
                 </button>
               )}
             </div>
+            <p className="text-center text-[13px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+              I read every message. You&apos;ll hear back within 24 hours — if your
+              date&apos;s open, I&apos;ll send a real quote; if not, I&apos;ll tell you straight.
+            </p>
             <AnimatePresence mode="wait">
               {state === "ok" && (
                 <motion.p
@@ -960,6 +1308,38 @@ function Booking() {
         </RiseFromDark>
       </div>
     </Section>
+  );
+}
+
+// ── Instagram — a link block, not a section: minimal padding, no eyebrow,
+// no headline. Sits between the booking form and the footer. ───────────────
+const INSTAGRAM_HANDLE = "@jonahshapiro.magic";
+const INSTAGRAM_URL = "https://www.instagram.com/jonahshapiro.magic";
+function InstagramBlock() {
+  return (
+    <section className="relative w-full py-[40px] md:py-[56px]" style={{ background: BG }}>
+      <style>{`
+        .ig-block:hover .ig-handle { color: #e6cf95; }
+      `}</style>
+      <div className={`${wrap} text-center`}>
+        <a
+          href={INSTAGRAM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ig-block inline-block"
+        >
+          <span className="block text-[16px]" style={{ color: TEXT }}>
+            More magic on Instagram →
+          </span>
+          <span
+            className="ig-handle mt-2 block text-[1.25rem] tracking-[0.1em]"
+            style={{ color: ACCENT, transition: "color 200ms ease-out" }}
+          >
+            {INSTAGRAM_HANDLE}
+          </span>
+        </a>
+      </div>
+    </section>
   );
 }
 
@@ -1199,15 +1579,20 @@ function MagicianSite() {
         {/* the drifting-card layer spans the whole page, positioned by % of its
             total height — mounted once, absolute, behind section content */}
         <DriftingCards />
+        <StickyBar />
         <div className="relative">
           <Hero />
+          <RecentlyPerformedAt />
           <PhraseBand />
           <TheExperience />
+          <SeeItLive />
           <TrickOfTheDay />
           <Witnessed />
+          <WhatItCosts />
+          <Faq />
           <About />
-          <WhereItWorks />
           <Booking />
+          <InstagramBlock />
           <MagicianFooter />
         </div>
       </div>
