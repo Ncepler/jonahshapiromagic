@@ -236,7 +236,20 @@ export function MagicianCursor({ children }: { children: ReactNode }) {
   }, [x, y]);
 
   return (
-    <div className="relative" style={{ cursor: "none" }}>
+    <div className="jonah-wand-cursor-scope relative">
+      {/* Buttons, links, inputs, and selects all carry their own explicit
+          `cursor: pointer/text/auto` from the browser's UA stylesheet — an
+          element's own cursor always wins over an inherited one, so setting
+          `cursor: none` up here on the wrapper alone gets overridden the
+          moment the pointer reaches anything clickable. This !important
+          rule reaches every descendant so the system cursor can't come
+          back anywhere inside the demo. */}
+      <style>{`
+        .jonah-wand-cursor-scope,
+        .jonah-wand-cursor-scope * {
+          cursor: none !important;
+        }
+      `}</style>
       <CursorSparks x={x} y={y} />
       <motion.div
         aria-hidden
