@@ -1,6 +1,6 @@
 "use client";
 
-// Jonah Shapiro, a close-up/stage magician & mentalist, in the THEATRICAL
+// Jonah Shapiro, a New York City close-up magician & mentalist, in the THEATRICAL
 // EXCEPTION system (SKILL §16). This is the one page that deliberately
 // throws out the local-service DNA everywhere else in components/examples/*:
 // no editorial restraint, no hairline-and-eyebrow spine, no "zero decorative
@@ -90,9 +90,9 @@ const DISPLAY = "var(--font-playfair)"; // playbill serif, §16b
 const SANS = "var(--font-tight)"; // clean quiet body sans
 
 const NAME = "Jonah Shapiro";
-const PHONE = "(516) 555-0199";
+const PHONE = "(917) 555-0199";
 const EMAIL = "hello@jonahshapiro.com";
-const AREA = "Based on Long Island, NY — available across the tri-state area";
+const AREA = "Based in New York City — available across all five boroughs";
 
 const wrap = "mx-auto w-full max-w-[1160px] px-6 md:px-16";
 
@@ -354,7 +354,7 @@ function DriftingCards() {
 // ── Dramatic phrase band — the trade marquee's theatrical equivalent
 // (§16e.2). Same seamless measure-and-overfill technique as the rest of the
 // site: muted phrase text, gold diamond separators — no red. ─────────────────
-const PHRASES = ["Close-up", "Stage", "Mentalism", "Galas", "Weddings"];
+const PHRASES = ["Close-up", "Sleight of hand", "Mentalism", "Parties", "Weddings"];
 function PhraseBand() {
   const containerRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLSpanElement>(null);
@@ -400,7 +400,7 @@ function PhraseBand() {
     <div
       ref={containerRef}
       role="marquee"
-      aria-label="What Jonah performs: close-up, stage, mentalism, galas, weddings"
+      aria-label="What Jonah performs: close-up, sleight of hand, mentalism, parties, weddings"
       className="relative w-full overflow-hidden whitespace-nowrap py-8"
       style={{ background: BG_ELEVATED, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}
     >
@@ -540,7 +540,7 @@ function Hero() {
             className="mt-8 text-[0.75rem] uppercase tracking-[0.15em]"
             style={{ color: TEXT_MUTED }}
           >
-            Long Island · New York · Tri-State Area
+            New York City · All Five Boroughs
           </p>
           <a
             href="#magician-book"
@@ -565,11 +565,11 @@ function Hero() {
 // usual vertical rhythm, plain BG, gold ◆ separators. Same visual family as
 // the venue row that used to live further down the page. ────────────────────
 const PERFORMED_AT = [
-  "Roslyn Country Club",
-  "Long Island Corporate Holiday Parties",
-  "Nassau County Weddings",
-  "Private Estate Events",
-  "Tri-State Gala Fundraisers",
+  "Manhattan Private Parties",
+  "NYC Corporate & Holiday Parties",
+  "Brooklyn Engagement Parties",
+  "Birthday & Milestone Celebrations",
+  "Weddings Across the Five Boroughs",
 ];
 function RecentlyPerformedAt() {
   return (
@@ -603,11 +603,11 @@ function RecentlyPerformedAt() {
 // hover/tap lifts + flips one to reveal a show type. Reduced-motion shows all
 // five already revealed, statically, in a plain readable row. ───────────────
 const SHOWS = [
-  { label: "Close-up & strolling", desc: "Cards and coins, inches from your eyes, table to table." },
-  { label: "Stage illusions", desc: "Built for a room, not a table — the big-stage set." },
+  { label: "Strolling close-up", desc: "Cards and coins, inches from your eyes, group to group." },
+  { label: "Cocktail hours", desc: "The hour before dinner, turned into the part people remember." },
   { label: "Mentalism", desc: "Predictions and mind-reading that shouldn't be possible." },
-  { label: "Corporate & galas", desc: "A room full of strangers, talking about one thing after." },
-  { label: "Private & weddings", desc: "The moment everyone still brings up months later." },
+  { label: "Corporate & holiday parties", desc: "A room full of strangers, talking about one thing after." },
+  { label: "Private parties & weddings", desc: "The moment everyone still brings up months later." },
 ];
 
 function ShowCard({ show, index }: { show: (typeof SHOWS)[number]; index: number }) {
@@ -727,106 +727,6 @@ function TheExperience() {
   );
 }
 
-// ── See It Live — the real performance reel plus three short clips. All
-// four slots are wired for real media but empty today: the main one renders
-// a <video> when REEL_VIDEO_SRC is set and a plain "Video coming soon" card
-// until then; the three clips are already <a> tags so dropping in real
-// YouTube URLs is a one-line change each. Plain BG, no curtain wash. ────────
-const REEL_VIDEO_SRC = ""; // drop the performance clip path in here
-const REEL_VIDEO_POSTER = ""; // and a poster frame here
-const REEL_CLIPS: Array<{ label: string; href: string }> = [
-  { label: "Close-up trick", href: "#" },
-  { label: "Mentalism moment", href: "#" },
-  { label: "Stage reveal", href: "#" },
-];
-
-function SeeItLive() {
-  return (
-    <Section className="text-center">
-      <style>{`
-        .reel-clip {
-          transition: border-color 200ms ease-out, transform 200ms ease-out;
-        }
-        .reel-clip-link:hover .reel-clip { border-color: ${ACCENT} !important; transform: translateY(-4px); }
-        .reel-clip-link:hover .reel-clip-play { opacity: 0.8; }
-      `}</style>
-      <RiseFromDark>
-        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
-          — See It Live —
-        </span>
-        <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-          Watch the room lose it.
-        </h2>
-      </RiseFromDark>
-
-      <RiseFromDark delay={0.12} className="mt-12">
-        <div
-          className="relative mx-auto w-full max-w-[900px] overflow-hidden"
-          style={{
-            aspectRatio: "16 / 9",
-            background: BG_ELEVATED,
-            border: `1px solid ${hexToRgba(ACCENT, 0.3)}`,
-            borderRadius: 4,
-          }}
-        >
-          {REEL_VIDEO_SRC ? (
-            <video
-              className="h-full w-full"
-              src={REEL_VIDEO_SRC}
-              poster={REEL_VIDEO_POSTER}
-              controls
-              preload="metadata"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-[13px]" style={{ color: TEXT_MUTED }}>
-                Video coming soon
-              </span>
-            </div>
-          )}
-        </div>
-        <p className="mt-4 text-[13px]" style={{ color: TEXT_MUTED }}>
-          Filmed live at a corporate holiday show, Long Island · December 2025.
-        </p>
-      </RiseFromDark>
-
-      <RiseFromDark delay={0.18} className="mt-12">
-        <div className="mx-auto flex max-w-[900px] flex-col gap-6 sm:flex-row sm:justify-center">
-          {REEL_CLIPS.map((clip) => (
-            <a
-              key={clip.label}
-              href={clip.href}
-              data-video="placeholder"
-              className="reel-clip-link block w-full sm:max-w-[280px] sm:flex-1"
-            >
-              <div
-                className="reel-clip relative flex w-full items-center justify-center"
-                style={{
-                  aspectRatio: "16 / 9",
-                  background: BG_ELEVATED,
-                  border: `1px solid ${BORDER}`,
-                  borderRadius: 4,
-                }}
-              >
-                <span
-                  aria-hidden
-                  className="reel-clip-play text-[22px]"
-                  style={{ color: ACCENT, opacity: 0.4, transition: "opacity 200ms ease-out" }}
-                >
-                  ▶
-                </span>
-              </div>
-              <p className="mt-3 text-[14px]" style={{ color: TEXT }}>
-                {clip.label}
-              </p>
-            </a>
-          ))}
-        </div>
-      </RiseFromDark>
-    </Section>
-  );
-}
-
 // ── Trick of the Day — a playbill-style gateway to Jonah's TikTok. Plain
 // base-bg section, no curtain wash here — that stays reserved for the hero
 // and booking sections; the red glow lives contained inside the card only.
@@ -922,62 +822,25 @@ function TrickOfTheDay() {
   );
 }
 
-// ── Witnessed — reactions, honestly unattributed (§16e.5/§12). ──────────────
-const REACTIONS = [
-  { line: "“I still don’t know how he did the card thing. I’ve looked it up. Nothing explains it.”", who: "Corporate holiday party guest" },
-  { line: "“Our whole table stopped talking. That never happens at a wedding.”", who: "Wedding guest" },
-  { line: "“He read my mind. Actually read it. I’m still weirded out.”", who: "Gala attendee" },
-];
-function Witnessed() {
-  return (
-    <Section>
-      {/* testimonials get zero red — bg-elevated/border only, no curtain wash */}
-      <RiseFromDark>
-        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
-          — Witnessed —
-        </span>
-        <h2 className="mt-4 text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-          What the room says after.
-        </h2>
-      </RiseFromDark>
-      <div className="mt-14 grid gap-8 md:grid-cols-3">
-        {REACTIONS.map((r, i) => (
-          <RiseFromDark key={r.who} delay={Math.min(i * 0.08, 0.2)}>
-            <div className="pt-6" style={{ borderTop: `1px solid ${BORDER}` }}>
-              <span style={{ color: ACCENT, fontSize: 26, fontFamily: DISPLAY, opacity: 0.4 }}>&ldquo;</span>
-              <p className="mt-1 text-[16px] leading-[1.6]" style={{ color: TEXT, fontFamily: DISPLAY, fontStyle: "italic" }}>
-                {r.line}
-              </p>
-              <p className="mt-4 text-[12px] font-semibold uppercase tracking-[0.12em]" style={{ color: TEXT_MUTED }}>
-                — {r.who}
-              </p>
-            </div>
-          </RiseFromDark>
-        ))}
-      </div>
-    </Section>
-  );
-}
-
 // ── What It Costs — real starting numbers, stated plainly (§12: no fake
 // urgency, no "call for pricing" games). Cards get zero red and no dramatic
 // hover — just a border brightening, since this section's job is legibility,
 // not spectacle. ────────────────────────────────────────────────────────────
 const PACKAGES = [
   {
-    name: "Close-Up Hour",
+    name: "One Hour",
     price: "From $500",
-    desc: "One hour of strolling, table-to-table magic during cocktails or dinner.",
+    desc: "An hour of close-up magic, moving group to group through your guests.",
   },
   {
-    name: "Stage Show",
-    price: "From $1,200",
-    desc: "A full 30–45 minute interactive stage set, built for the whole room.",
+    name: "Two Hours",
+    price: "From $900",
+    desc: "Cocktails through dinner — enough time that everyone in the room gets seen.",
   },
   {
-    name: "Full Evening",
-    price: "From $2,000",
-    desc: "Close-up during cocktails + a stage show for the main event.",
+    name: "Full Event",
+    price: "From $1,500",
+    desc: "Three hours across the whole evening, from arrivals to the last table.",
   },
 ];
 function WhatItCosts() {
@@ -992,11 +855,11 @@ function WhatItCosts() {
           — What It Costs —
         </span>
         <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-          Straight numbers. No mystery here.
+          Clear rates, stated up front.
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
-          Every event is different, but here&apos;s roughly where it starts. Real
-          quotes come after we talk about your date and room.
+          Every event is different, but this is where it starts. A firm quote
+          follows once we&apos;ve talked through your date, venue, and guest count.
         </p>
       </RiseFromDark>
       <div className="mt-14 grid gap-6 md:grid-cols-3">
@@ -1028,7 +891,7 @@ function WhatItCosts() {
       </div>
       <RiseFromDark delay={0.24}>
         <p className="mt-10 text-[13px]" style={{ color: TEXT_MUTED }}>
-          Weddings, multi-hour events, and out-of-state travel quoted separately.
+          Weddings, extended coverage, and travel outside New York City are quoted separately.
         </p>
       </RiseFromDark>
     </Section>
@@ -1042,27 +905,27 @@ function WhatItCosts() {
 const FAQS = [
   {
     q: "How much does it cost?",
-    a: "Close-up hour starts at $500. Stage shows start at $1,200. A full evening (close-up during cocktails + stage show for the main event) starts at $2,000. Weddings, multi-hour events, and travel outside the tri-state area are quoted separately. I'll always give you a real number after we talk about your date and room — no vague “starting from” games.",
+    a: "One hour starts at $500, two hours at $900, and full-event coverage at $1,500. Weddings, extended coverage, and travel outside New York City are quoted separately. You'll get a firm number once we've talked through your date, venue, and guest count — no vague ranges.",
   },
   {
-    q: "What's the difference between close-up and a stage show?",
-    a: "Close-up is table-to-table — I'm three feet from you, doing cards, coins, and mentalism in your hands. It's for cocktail hours, dinner, and moments where people are already talking. A stage show is the whole room watching one thing at once — bigger reveals, more theater, works as the main event or after dinner. A lot of clients do both.",
+    q: "What does close-up magic actually look like at an event?",
+    a: "I come to your guests rather than the other way around — no stage, no setup, no interruption to the evening. I work group to group with cards, coins, and mentalism happening in your guests' own hands, inches from their eyes. It fits naturally into cocktails, dinner, and the stretches where people are already mingling.",
   },
   {
     q: "How far in advance should I book?",
-    a: "Weekends in November, December, May, and June book up 3–6 months out. Off-peak dates, 4–8 weeks is usually fine. If your date's within two weeks, still ask — sometimes it works.",
+    a: "Weekend dates in November, December, May, and June tend to fill 3–6 months out. Off-peak, 4–8 weeks is usually enough. If your date is inside two weeks, it's still worth asking — availability opens up more often than you'd expect.",
   },
   {
-    q: "How far do you travel?",
-    a: "Long Island, NYC, and the tri-state area are the home base — no travel fee. Anywhere beyond, I'll quote travel with the booking. I've worked events in Boston, Philly, and DC without issue.",
+    q: "What areas do you cover?",
+    a: "New York City is home base — all five boroughs, no travel fee. For events outside the city, travel is quoted with the booking.",
   },
   {
-    q: "Can you customize for our company or event theme?",
-    a: "Yes. Corporate events can have branded moments, product mentions, or a personal reveal built into the show — it takes about a week of prep. Weddings can include something specific to the couple. Just tell me what you want to land, and I'll build toward it.",
+    q: "Can you tailor it to our company or occasion?",
+    a: "Yes. Corporate events can include branded moments, a product tie-in, or a reveal built around someone specific — that takes about a week of prep. Private events can be built around the guest of honor. Tell me the moment you want to land and I'll build toward it.",
   },
   {
     q: "What do you need from the venue?",
-    a: "For close-up, nothing — I bring everything. For a stage show: a small performance area (~10x10 feet is plenty), a microphone if the room is larger than 30 people, and stage lighting if the venue has it. I'll walk your venue coordinator through the details once we're booked.",
+    a: "Nothing. No stage, no sound system, no lighting, no floor space set aside — I bring everything I need and work in the room exactly as it is. That's the advantage of close-up: it slots into your event without changing a thing about it.",
   },
 ];
 function Faq() {
@@ -1157,8 +1020,8 @@ function About() {
           <p className="mt-6 max-w-md text-[16px] leading-[1.7]" style={{ color: TEXT }}>
             Jonah started with a deck of cards and an audience of one — himself,
             in a mirror, for longer than he&apos;d like to admit. These days it&apos;s
-            close-up rooms, full stages, and the occasional wedding, but the
-            method never changes: get close enough that the audience stops
+            New York parties, corporate rooms, and the occasional wedding, but
+            the method never changes: get close enough that the audience stops
             looking for the seam, then give them a moment they can&apos;t explain.
           </p>
           <p className="mt-4 max-w-md text-[16px] leading-[1.7]" style={{ color: TEXT }}>
@@ -1174,7 +1037,7 @@ function About() {
 // ── Booking — the conversion point (§16e.8). Local component state. The second
 // (and last) curtain-wash section — bookends the hero at the bottom of the
 // page, subtler than the hero's. ─────────────────────────────────────────
-const EVENT_TYPES = ["Corporate event", "Gala / fundraiser", "Private party", "Wedding", "Theater / live show", "Not sure yet"];
+const EVENT_TYPES = ["Corporate event", "Holiday party", "Private party", "Wedding", "Birthday / milestone", "Not sure yet"];
 function Booking() {
   const [state, setState] = useState<"idle" | "ok" | "err">("idle");
   const reduced = useReducedMotion();
@@ -1202,8 +1065,8 @@ function Booking() {
             Book the show.
           </h2>
           <p className="mt-6 max-w-md text-[16px] leading-[1.6]" style={{ color: TEXT }}>
-            Tell me the date and the room. I&apos;ll tell you what fits — close-up
-            for cocktail hour, a stage set for the main event, or both.
+            Tell me the date and the room. I&apos;ll tell you what fits — an hour
+            through cocktails, or close-up across the whole evening.
           </p>
           <div className="mt-8 space-y-3 text-[15px]">
             {[["Call or text", PHONE], ["Email", EMAIL], ["Based", AREA]].map(([k, v]) => (
@@ -1251,7 +1114,7 @@ function Booking() {
             </div>
             <div>
               <span className={label} style={{ color: TEXT_MUTED }}>Anything else?</span>
-              <textarea rows={4} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Cocktail hour, sit-down dinner, stage available — whatever you've got." />
+              <textarea rows={4} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Cocktail hour, sit-down dinner, how many guests — whatever you've got." />
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <button
@@ -1361,6 +1224,18 @@ function MagicianFooter() {
         </div>
         <p className="mt-8 text-[12px]" style={{ color: TEXT_MUTED }}>
           © 2026 {NAME}. All rights reserved.
+        </p>
+        <p className="mt-2 text-[11px]" style={{ color: TEXT_MUTED, opacity: 0.75 }}>
+          Site by{" "}
+          <a
+            href="https://vilas.studio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+            style={{ color: TEXT_MUTED }}
+          >
+            vilas.studio
+          </a>
         </p>
       </div>
     </footer>
@@ -1585,9 +1460,7 @@ function MagicianSite() {
           <RecentlyPerformedAt />
           <PhraseBand />
           <TheExperience />
-          <SeeItLive />
           <TrickOfTheDay />
-          <Witnessed />
           <WhatItCosts />
           <Faq />
           <About />

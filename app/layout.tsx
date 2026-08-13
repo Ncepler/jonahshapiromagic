@@ -19,7 +19,7 @@ const interTight = Inter_Tight({
 export const metadata: Metadata = {
   title: "Jonah Shapiro — Magician & Mentalist",
   description:
-    "Close-up magic, stage illusions, and mentalism for corporate events, galas, weddings, and private parties.",
+    "New York City close-up magic and mentalism for corporate events, holiday parties, weddings, and private parties.",
 };
 
 export default function RootLayout({

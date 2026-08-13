@@ -2,7 +2,8 @@
 
 Next.js (App Router) + TypeScript + Tailwind CSS + [motion](https://motion.dev).
 
-A one-page site for Jonah Shapiro, a close-up magician & mentalist.
+A one-page site for Jonah Shapiro, a New York City close-up magician &
+mentalist.
 
 ## Getting started
 
@@ -22,8 +23,9 @@ Open http://localhost:3000.
 
 ## Structure
 
-- `app/page.tsx` — the whole one-page site (hero, experience, trick of the
-  day, testimonials, about, venues, booking form, footer)
+- `app/page.tsx` — the whole one-page site (hero, recently performed at,
+  experience, trick of the day, pricing, FAQ, about, booking form,
+  Instagram, footer)
 - `app/MagicianCursor.tsx` — scoped custom cursor used only on this page
 - `app/layout.tsx` — root layout, loads the Playfair Display + Inter Tight
   fonts referenced by the page
