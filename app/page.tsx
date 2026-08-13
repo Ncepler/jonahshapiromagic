@@ -997,20 +997,23 @@ function MagicianFooter() {
 // above everything else on the page (z-900) so it fully covers the site on
 // arrival.
 //
-// Fluid, not a sliding door: each half is one panel that travels the full
-// distance off-screen (guarantees a clean, total clear), but it's built
-// from CURTAIN_STRIP_COUNT vertical pleats layered inside it. The pleats
-// carry alternating light/shadow shading (fake rounded fold cross-section)
-// and each gets its own small skew/scale "flutter" animation on a slight
-// stagger, rippling across the panel as it travels — that's what reads as
-// cloth instead of one rigid rectangle. Timing: hold closed for
-// CURTAIN_BASE_DELAY_MS, then ease open over CURTAIN_MOVE_MS with a
-// symmetric in/out curve (slow-start, slow-finish — a hand drawing it open,
-// not a door mechanism snapping through it). ────────────────────────────────
+// Fluid, not a sliding door — but always solid: each half is ONE panel
+// (translateX is only ever applied at the panel level, identically to
+// everything inside it) built from CURTAIN_STRIP_COUNT vertical pleats.
+// The pleats are purely static — alternating light/shadow shading fakes a
+// rounded fold cross-section, no per-pleat transform — because giving each
+// pleat its own independent skew (an earlier version of this) let adjacent
+// pleats momentarily disagree on shape and tear open little gaps in the
+// curtain's own face. Since the panel is the only thing that ever moves,
+// every pleat inside it stays perfectly rigid relative to its neighbors —
+// no internal gaps are possible, at any point in the animation, on any
+// viewport. Timing: hold closed for CURTAIN_BASE_DELAY_MS, then ease open
+// over CURTAIN_MOVE_MS on a symmetric in/out curve with a small anticipation
+// dip at the start (a tug before the pull) — still one rigid translateX, so
+// it can't introduce a gap either. ──────────────────────────────────────────
 const CURTAIN_BASE_DELAY_MS = 1000; // the pause before anything moves
 const CURTAIN_MOVE_MS = 1900; // slower, unhurried open
 const CURTAIN_STRIP_COUNT = 7;
-const CURTAIN_STRIP_STAGGER_MS = 35; // ripple spacing between adjacent pleats
 const CURTAIN_TOTAL_MS = CURTAIN_BASE_DELAY_MS + CURTAIN_MOVE_MS;
 const CURTAIN_EASE = "cubic-bezier(0.65, 0, 0.35, 1)"; // symmetric ease-in-out — fluid, not mechanical
 
@@ -1041,7 +1044,6 @@ function curtainStripStyle(shade: number): CSSProperties {
   return {
     position: "relative",
     height: "100%",
-    width: "100%",
     background: `repeating-linear-gradient(90deg, ${CURTAIN} 0px, ${CURTAIN_DEEP} 11px, ${CURTAIN} 22px)`,
     boxShadow:
       "inset 7px 0 14px -8px rgba(0,0,0,0.65), inset -7px 0 14px -8px rgba(0,0,0,0.65), inset 0 0 50px rgba(0,0,0,0.4)",
@@ -1054,12 +1056,10 @@ function CurtainPanel({ side }: { side: "left" | "right" }) {
   return (
     <div
       className={`jonah-curtain-panel jonah-curtain-panel-${side === "left" ? "l" : "r"} absolute inset-y-0 flex`}
-      style={{ [side]: 0, width: "51%" } as CSSProperties}
+      style={{ [side]: 0, width: "54%" } as CSSProperties}
     >
       {shades.map((shade, i) => (
-        <div key={i} className="jonah-curtain-flutter-el" style={{ animationDelay: `${CURTAIN_BASE_DELAY_MS + i * CURTAIN_STRIP_STAGGER_MS}ms` }}>
-          <div style={curtainStripStyle(shade)} />
-        </div>
+        <div key={i} className="jonah-curtain-strip-el" style={curtainStripStyle(shade)} />
       ))}
       <div
         className={`absolute inset-y-0 ${side === "left" ? "right-0" : "left-0"}`}
@@ -1085,17 +1085,13 @@ function CurtainReveal() {
       <style>{`
         @keyframes jonah-curtain-l {
           0% { transform: translateX(0); }
+          9% { transform: translateX(1.5%); }
           100% { transform: translateX(-101%); visibility: hidden; }
         }
         @keyframes jonah-curtain-r {
           0% { transform: translateX(0); }
+          9% { transform: translateX(-1.5%); }
           100% { transform: translateX(101%); visibility: hidden; }
-        }
-        @keyframes jonah-curtain-flutter {
-          0% { transform: skewX(0deg) scaleX(1); }
-          32% { transform: skewX(-4.5deg) scaleX(0.965); }
-          62% { transform: skewX(3deg) scaleX(1.02); }
-          100% { transform: skewX(0deg) scaleX(1); }
         }
         @keyframes jonah-curtain-rail {
           0%, ${pausePct}% { opacity: 1; }
@@ -1125,13 +1121,9 @@ function CurtainReveal() {
         }
         .jonah-curtain-panel-l { animation-name: jonah-curtain-l; }
         .jonah-curtain-panel-r { animation-name: jonah-curtain-r; }
-        .jonah-curtain-flutter-el {
+        .jonah-curtain-strip-el {
           flex: 1 1 0%;
           height: 100%;
-          animation-name: jonah-curtain-flutter;
-          animation-duration: ${CURTAIN_MOVE_MS}ms;
-          animation-timing-function: ease-in-out;
-          animation-fill-mode: forwards;
         }
         .jonah-curtain-rail-el { animation: jonah-curtain-rail ${CURTAIN_TOTAL_MS}ms linear forwards; }
         .jonah-curtain-flash-el { animation: jonah-curtain-flash ${CURTAIN_TOTAL_MS}ms linear forwards; }

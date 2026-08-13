@@ -14,6 +14,7 @@
 
 import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { useEffect, useRef, type ReactNode } from "react";
+import { useCanHover } from "@/lib/hooks";
 
 const WAND_CAP = "#f5f5f0";
 const WAND_SHAFT = "#161616"; // slightly lifted off pure black so it still
@@ -223,17 +224,30 @@ function CursorSparks({ x, y }: { x: MotionValue<number>; y: MotionValue<number>
 }
 
 export function MagicianCursor({ children }: { children: ReactNode }) {
+  // Only a real mouse/trackpad gets the wand — on a touch-only device
+  // there's no pointer position to track, so the wand would just sit
+  // wherever it last landed (typically off in a corner or stuck mid-page)
+  // looking like a stray bug. useCanHover() defaults false until the
+  // (hover: hover) and (pointer: fine) media query resolves on mount, so
+  // touch devices never render any of this and desktop gets it a beat
+  // after hydration — same tradeoff DriftingCards already makes.
+  const canHover = useCanHover();
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
 
   useEffect(() => {
+    if (!canHover) return;
     const onMove = (e: PointerEvent) => {
       x.set(e.clientX);
       y.set(e.clientY);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
-  }, [x, y]);
+  }, [canHover, x, y]);
+
+  if (!canHover) {
+    return <div className="relative">{children}</div>;
+  }
 
   return (
     <div className="jonah-wand-cursor-scope relative">
