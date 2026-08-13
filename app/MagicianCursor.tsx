@@ -1,58 +1,59 @@
 "use client";
 
-// A real magic-wand cursor — black-and-white shaft with a star-sparkle tip
-// that tracks the pointer. Sparks kick off the tip in the direction OPPOSITE
-// the wand's motion (a trail left behind, like a sparkler), then arc and
-// fall under gravity as they cool and fade. Rendered as short streaks, not
-// dots — actual sparks, not a glowing blob. ALWAYS active inside the
-// magician demo (this component wraps just that content, see app/page.tsx's
+// A classic stage magician's wand — black cylindrical shaft, white caps on
+// both ends. Flat fills only: no gradients, no stars, no glow, no stroke.
+// Drawn horizontally in its own SVG space, then rotated -35° via CSS so it
+// angles up-and-to-the-right. Sparks kick off the tip (the upper-right cap)
+// in the direction OPPOSITE the wand's motion — a trail left behind, like a
+// sparkler — then arc and fall under gravity as they cool and fade,
+// rendered as short streaks, not dots. ALWAYS active inside the magician
+// demo (this component wraps just that content, see app/page.tsx's
 // MagicianDemo export).
 
 import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { useEffect, useRef, type ReactNode } from "react";
 
-const BLACK = "#000000";
-const WHITE = "#FFFFFF";
+const WAND_CAP = "#f5f5f0";
+const WAND_SHAFT = "#0a0a0a";
 
-const WAND_SIZE = 44;
-// Where the sparkle sits inside the icon's own box. The icon is translated
-// by -TIP_X/-TIP_Y so this exact point lands on the real pointer position —
-// sparks are spawned at (pointerX, pointerY) directly, no extra offset math.
-const TIP_X = 32;
-const TIP_Y = 10;
+// cap : shaft : cap = 5 : 18 : 5
+const WAND_LEN = 28;
+const WAND_THICK = 4;
+const WAND_ANGLE_DEG = -35;
 
-function sparklePath(cx: number, cy: number, outerR: number, innerR: number) {
-  const pts: string[] = [];
-  for (let i = 0; i < 8; i++) {
-    const angle = (Math.PI / 4) * i - Math.PI / 2; // start at top, clockwise
-    const r = i % 2 === 0 ? outerR : innerR;
-    pts.push(`${(cx + r * Math.cos(angle)).toFixed(2)},${(cy + r * Math.sin(angle)).toFixed(2)}`);
-  }
-  return `M${pts.join(" L")} Z`;
+// The tip — the outer end of the right (upper, after rotation) cap — is
+// what tracks the mouse and what sparks emit from, not the SVG's box. Its
+// local position before rotation is (WAND_LEN, WAND_THICK / 2); rotate that
+// offset around the SVG's own center to get where the tip actually lands
+// once the wand is angled, then use it to pull the whole icon back so the
+// tip (not the box) sits on the pointer.
+function computeTipOffset() {
+  const centerX = WAND_LEN / 2;
+  const centerY = WAND_THICK / 2;
+  const dx = WAND_LEN - centerX;
+  const dy = WAND_THICK / 2 - centerY; // = 0
+  const angleRad = (WAND_ANGLE_DEG * Math.PI) / 180;
+  const rotatedDx = dx * Math.cos(angleRad) - dy * Math.sin(angleRad);
+  const rotatedDy = dx * Math.sin(angleRad) + dy * Math.cos(angleRad);
+  return { x: centerX + rotatedDx, y: centerY + rotatedDy };
 }
-
-const BIG_SPARKLE = sparklePath(TIP_X, TIP_Y, 7, 2.4);
-const SMALL_SPARKLE = sparklePath(39, 19, 3, 1);
+const TIP_OFFSET = computeTipOffset();
 
 function WandIcon() {
   return (
-    <svg width={WAND_SIZE} height={WAND_SIZE} viewBox={`0 0 ${WAND_SIZE} ${WAND_SIZE}`} aria-hidden>
-      <defs>
-        <radialGradient id="wand-tip-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={WHITE} stopOpacity="0.45" />
-          <stop offset="100%" stopColor={WHITE} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx={TIP_X} cy={TIP_Y} r={12} fill="url(#wand-tip-glow)" />
-      {/* shaft — black outline + white core, no color */}
-      <line x1={9} y1={38} x2={25} y2={17} stroke={BLACK} strokeWidth={4.5} strokeLinecap="round" />
-      <line x1={9} y1={38} x2={25} y2={17} stroke={WHITE} strokeWidth={2.2} strokeLinecap="round" />
-      {/* grip beads */}
-      <circle cx={13} cy={34} r={1.6} fill={BLACK} stroke={WHITE} strokeWidth={0.8} />
-      <circle cx={17} cy={30} r={1.3} fill={WHITE} stroke={BLACK} strokeWidth={0.8} />
-      {/* tip sparkle + a small companion twinkle */}
-      <path d={BIG_SPARKLE} fill={WHITE} stroke={BLACK} strokeWidth={1} strokeLinejoin="round" />
-      <path d={SMALL_SPARKLE} fill={WHITE} stroke={BLACK} strokeWidth={0.75} strokeLinejoin="round" opacity={0.9} />
+    <svg
+      viewBox={`0 0 ${WAND_LEN} ${WAND_THICK}`}
+      width={WAND_LEN}
+      height={WAND_THICK}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      {/* left white cap — rounded outer end, square inner end */}
+      <path d="M 2,0 L 5,0 L 5,4 L 2,4 A 2,2 0 0 1 2,0 Z" fill={WAND_CAP} />
+      {/* black shaft */}
+      <rect x={5} y={0} width={18} height={4} fill={WAND_SHAFT} />
+      {/* right white cap — rounded outer end, square inner end (the tip) */}
+      <path d="M 23,0 L 26,0 A 2,2 0 0 1 26,4 L 23,4 Z" fill={WAND_CAP} />
     </svg>
   );
 }
@@ -231,8 +232,20 @@ export function MagicianCursor({ children }: { children: ReactNode }) {
         className="pointer-events-none fixed left-0 top-0 z-[999]"
         style={{ x, y }}
       >
-        <div style={{ transform: `translate(-${TIP_X}px, -${TIP_Y}px)` }}>
-          <WandIcon />
+        {/* pull the box back by the rotated tip offset, so the tip (not the
+            box) lands on the pointer */}
+        <div style={{ transform: `translate(${-TIP_OFFSET.x}px, ${-TIP_OFFSET.y}px)` }}>
+          {/* rotate the wand itself around its own center */}
+          <div
+            style={{
+              width: WAND_LEN,
+              height: WAND_THICK,
+              transform: `rotate(${WAND_ANGLE_DEG}deg)`,
+              transformOrigin: "center",
+            }}
+          >
+            <WandIcon />
+          </div>
         </div>
       </motion.div>
       {children}
