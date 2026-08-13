@@ -30,6 +30,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import Image from "next/image";
 import { useCanHover } from "@/lib/hooks";
 import { MagicianCursor } from "./MagicianCursor";
 
@@ -760,7 +761,18 @@ function About() {
     <Section className="" id="magician-about">
       <div className="grid items-center gap-12 md:grid-cols-[0.85fr_1fr] md:gap-16">
         <RiseFromDark>
-          <Placeholder label="PORTRAIT — the magician, low key (4:5)" ratio="4/5" />
+          <div
+            className="relative w-full overflow-hidden rounded-[6px]"
+            style={{ aspectRatio: "4/5", border: `1px solid ${BORDER}` }}
+          >
+            <Image
+              src="/JonahPortrait.jpg"
+              alt="Jonah Shapiro, portrait"
+              fill
+              sizes="(min-width: 768px) 40vw, 90vw"
+              className="object-cover"
+            />
+          </div>
         </RiseFromDark>
         <RiseFromDark delay={0.1}>
           <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
