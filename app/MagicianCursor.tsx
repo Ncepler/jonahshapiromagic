@@ -1,7 +1,9 @@
 "use client";
 
 // A classic stage magician's wand — black cylindrical shaft, white caps on
-// both ends. Flat fills only: no gradients, no stars, no glow, no stroke.
+// both ends. Flat fills, no gradients/stars/glow — the shaft gets a thin
+// rim (see WAND_EDGE) purely so it stays visible against the page's own
+// near-black background, not as decoration.
 // Drawn horizontally in its own SVG space, then rotated -35° via CSS so it
 // angles up-and-to-the-right. Sparks kick off the tip (the upper-right cap)
 // in the direction OPPOSITE the wand's motion — a trail left behind, like a
@@ -14,11 +16,20 @@ import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { useEffect, useRef, type ReactNode } from "react";
 
 const WAND_CAP = "#f5f5f0";
-const WAND_SHAFT = "#0a0a0a";
+const WAND_SHAFT = "#161616"; // slightly lifted off pure black so it still
+// reads against the page's near-black background, see the shaft outline below
+const WAND_EDGE = "#5a5a5a"; // thin rim on the shaft only — the black shaft
+// on a near-black page otherwise disappears into a silhouette of just the
+// two caps; this keeps the shape flat/matte while still giving it an edge
 
-// cap : shaft : cap = 5 : 18 : 5
-const WAND_LEN = 28;
-const WAND_THICK = 4;
+// cap : shaft : cap = 5 : 18 : 5, defined in the SVG's own coordinate space
+const WAND_VIEW_LEN = 28;
+const WAND_VIEW_THICK = 4;
+// ~15% bigger on screen than the reference spec, same proportions — scaling
+// via width/height vs. viewBox keeps every path's ratios exact
+const WAND_SCALE = 1.15;
+const WAND_LEN = WAND_VIEW_LEN * WAND_SCALE;
+const WAND_THICK = WAND_VIEW_THICK * WAND_SCALE;
 const WAND_ANGLE_DEG = -35;
 
 // The tip — the outer end of the right (upper, after rotation) cap — is
@@ -42,7 +53,7 @@ const TIP_OFFSET = computeTipOffset();
 function WandIcon() {
   return (
     <svg
-      viewBox={`0 0 ${WAND_LEN} ${WAND_THICK}`}
+      viewBox={`0 0 ${WAND_VIEW_LEN} ${WAND_VIEW_THICK}`}
       width={WAND_LEN}
       height={WAND_THICK}
       xmlns="http://www.w3.org/2000/svg"
@@ -50,8 +61,8 @@ function WandIcon() {
     >
       {/* left white cap — rounded outer end, square inner end */}
       <path d="M 2,0 L 5,0 L 5,4 L 2,4 A 2,2 0 0 1 2,0 Z" fill={WAND_CAP} />
-      {/* black shaft */}
-      <rect x={5} y={0} width={18} height={4} fill={WAND_SHAFT} />
+      {/* black shaft — a thin rim keeps it legible against the near-black page */}
+      <rect x={5} y={0} width={18} height={4} fill={WAND_SHAFT} stroke={WAND_EDGE} strokeWidth={0.5} />
       {/* right white cap — rounded outer end, square inner end (the tip) */}
       <path d="M 23,0 L 26,0 A 2,2 0 0 1 26,4 L 23,4 Z" fill={WAND_CAP} />
     </svg>
