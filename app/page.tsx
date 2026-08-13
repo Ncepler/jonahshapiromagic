@@ -660,8 +660,8 @@ function TrickOfTheDay() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit Jonah Shapiro's TikTok — @shap_shufflz_magic"
-          className="trick-card relative mx-auto flex w-full max-w-[800px] flex-col items-center justify-center gap-4 overflow-hidden px-8 py-14 md:h-[400px] md:py-0"
-          style={{ background: BG_ELEVATED, border: `1px solid ${hexToRgba(ACCENT, 0.3)}`, borderRadius: 4 }}
+          className="trick-card relative mx-auto flex w-full max-w-[380px] flex-col items-center justify-center gap-4 overflow-hidden px-6 py-10"
+          style={{ background: BG_ELEVATED, border: `1px solid ${hexToRgba(ACCENT, 0.3)}`, borderRadius: 4, aspectRatio: "9 / 16" }}
         >
           <div
             aria-hidden
@@ -675,21 +675,21 @@ function TrickOfTheDay() {
           <span
             aria-hidden
             className="trick-card-glyph relative inline-block"
-            style={{ color: ACCENT, fontSize: 32, opacity: 0.7, transition: "transform 300ms ease-out" }}
+            style={{ color: ACCENT, fontSize: 28, opacity: 0.7, transition: "transform 300ms ease-out" }}
           >
             ✦
           </span>
-          <span className="relative text-[2.5rem] leading-[1.1]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+          <span className="relative text-[2rem] leading-[1.15]" style={{ color: TEXT, fontFamily: DISPLAY }}>
             Reveal today&apos;s trick
           </span>
           <span
-            className="trick-card-arrow relative inline-block text-[15px]"
+            className="trick-card-arrow relative inline-block text-[14px]"
             style={{ color: TEXT_MUTED, transition: "transform 250ms ease-out" }}
           >
-            → opens on TikTok
+            → step behind the curtain
           </span>
           <span
-            className="relative mt-2 text-[12px] font-semibold uppercase tracking-[0.18em]"
+            className="relative mt-2 text-[11px] font-semibold uppercase tracking-[0.18em]"
             style={{ color: TEXT_MUTED }}
           >
             {TIKTOK_HANDLE}
