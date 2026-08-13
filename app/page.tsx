@@ -624,8 +624,19 @@ function TheExperience() {
 // ── Trick of the Day — a playbill-style gateway to Jonah's TikTok. Plain
 // base-bg section, no curtain wash here — that stays reserved for the hero
 // and booking sections; the red glow lives contained inside the card only.
+// Clicking doesn't just go to the profile — it opens one random video from
+// the rotation below, a fresh "trick" each time. href stays the profile
+// page as a plain fallback for no-JS/middle-click; onClick intercepts the
+// normal click to send JS-enabled visitors to a random video instead.
 const TIKTOK_URL = "https://www.tiktok.com/@shap_shufflz_magic";
 const TIKTOK_HANDLE = "@shap_shufflz_magic";
+const TIKTOK_VIDEO_URLS = [
+  "https://www.tiktok.com/@shap_shufflz_magic/video/7645045371244154142",
+  "https://www.tiktok.com/@shap_shufflz_magic/video/7644400672254790943",
+  "https://www.tiktok.com/@shap_shufflz_magic/video/7660168781209079071",
+  "https://www.tiktok.com/@shap_shufflz_magic/video/7654723486639770910",
+  "https://www.tiktok.com/@shap_shufflz_magic/video/7665430856810499359",
+];
 
 function TrickOfTheDay() {
   return (
@@ -659,7 +670,12 @@ function TrickOfTheDay() {
           href={TIKTOK_URL}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Visit Jonah Shapiro's TikTok — @shap_shufflz_magic"
+          onClick={(e) => {
+            e.preventDefault();
+            const video = TIKTOK_VIDEO_URLS[Math.floor(Math.random() * TIKTOK_VIDEO_URLS.length)];
+            window.open(video, "_blank", "noopener,noreferrer");
+          }}
+          aria-label="Watch a random trick from Jonah Shapiro's TikTok — @shap_shufflz_magic"
           className="trick-card relative mx-auto flex w-full max-w-[380px] flex-col items-center justify-center gap-4 overflow-hidden px-6 py-10"
           style={{ background: BG_ELEVATED, border: `1px solid ${hexToRgba(ACCENT, 0.3)}`, borderRadius: 4, aspectRatio: "9 / 16" }}
         >
