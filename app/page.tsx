@@ -1,6 +1,6 @@
 "use client";
 
-// Style demo — Elias Vane, a close-up/stage magician & mentalist, in the
+// Style demo — Jonah Shapiro, a close-up/stage magician & mentalist, in the
 // THEATRICAL EXCEPTION system (SKILL §16). This is the one demo that
 // deliberately throws out the local-service DNA everywhere else in
 // components/demos/*: no editorial restraint, no hairline-and-eyebrow spine,
@@ -11,7 +11,7 @@
 //
 // The only rules that still apply here: honesty (§12/§16f — no fabricated
 // credits/celebrities/awards/"sold out"), labeled placeholders (§10), and the
-// "demo build" label. "Elias Vane" is a sample brand for the demo, not a
+// "demo build" label. "Jonah Shapiro" is a sample brand for the demo, not a
 // real performer. Spec: .claude/skills/local-service-design-system/SKILL.md §16
 
 import {
@@ -35,23 +35,35 @@ import { MagicianCursor } from "./MagicianCursor";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-// ── Palette — velvet black + stage gold + embers (SKILL §16a). ───────────────
-const BG = "#0A0711";
-const SURFACE = "#14101D";
+// ── Palette — a huge red stage curtain against total darkness: near-black
+// falling into a deep velvet crimson, with a warmer ember accent (§16a).
+const BG = "#0D0808";
+const SURFACE = "#1B0E0E";
 const FG = "#F4EFE6";
-const BODY = "#B9B2C2";
-const MUTED = "#7A7388";
-const LINE = "#251F33";
-const GOLD = "#D4A53C";
-const EMBER = "#E0531F";
-const VIOLET = "#7B2D8E"; // rare — one deep stage glow only
+const BODY = "#C7B4B0";
+const MUTED = "#8C7370";
+const LINE = "#2E1414";
+const CRIMSON = "#A31F2E";
+const EMBER = "#C9432B";
+const DEEP_RED = "#3A0B10"; // rare — one deep curtain-shadow glow only
+
+// Small hex → rgba helper so gradient/canvas code can borrow the exact
+// palette colors above at partial opacity instead of hand-duplicating their
+// RGB triplets as magic numbers scattered through the file.
+function hexToRgba(hex: string, alpha: number) {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 const DISPLAY = "var(--font-playfair)"; // playbill serif, §16b
 const SANS = "var(--font-tight)"; // clean quiet body sans
 
-const NAME = "Elias Vane";
+const NAME = "Jonah Shapiro";
 const PHONE = "(516) 555-0199";
-const EMAIL = "hello@eliasvane.demo";
+const EMAIL = "hello@jonahshapiro.demo";
 const AREA = "Based on Long Island, NY — available across the tri-state area";
 
 const wrap = "mx-auto w-full max-w-[1160px] px-6 md:px-16";
@@ -120,8 +132,7 @@ function Placeholder({
           aria-hidden
           className="absolute inset-0"
           style={{
-            background:
-              "radial-gradient(60% 60% at 50% 35%, rgba(212,165,60,.14), transparent 70%)",
+            background: `radial-gradient(60% 60% at 50% 35%, ${hexToRgba(CRIMSON, 0.14)}, transparent 70%)`,
           }}
         />
       )}
@@ -176,7 +187,7 @@ function Embers({ density = 26 }: { density?: number }) {
       drift: number;
       life: number;
       maxLife: number;
-      gold: boolean;
+      crimson: boolean;
     };
     const spawn = (): P => ({
       x: Math.random() * w,
@@ -186,7 +197,7 @@ function Embers({ density = 26 }: { density?: number }) {
       drift: (Math.random() - 0.5) * 12,
       life: Math.random() * 2, // stagger initial phase so they don't all pop at once
       maxLife: 5 + Math.random() * 5,
-      gold: Math.random() < 0.62,
+      crimson: Math.random() < 0.62,
     });
     const particles: P[] = Array.from({ length: count }, spawn);
 
@@ -208,9 +219,9 @@ function Embers({ density = 26 }: { density?: number }) {
         const alpha = t01 < 0.15 ? t01 / 0.15 : 1 - (t01 - 0.15) / 0.85;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.gold
-          ? `rgba(212,165,60,${Math.max(0, alpha) * 0.75})`
-          : `rgba(224,83,31,${Math.max(0, alpha) * 0.6})`;
+        ctx.fillStyle = p.crimson
+          ? hexToRgba(CRIMSON, Math.max(0, alpha) * 0.75)
+          : hexToRgba(EMBER, Math.max(0, alpha) * 0.6);
         ctx.fill();
       }
       raf = requestAnimationFrame(tick);
@@ -233,18 +244,18 @@ function Embers({ density = 26 }: { density?: number }) {
 }
 
 // ── Drifting cards — a handful of playing cards parallax across sections on
-// scroll, slight 3D tilt, gold glints (§16d.2). Content-free decoration, the
+// scroll, slight 3D tilt, crimson glints (§16d.2). Content-free decoration, the
 // documented exception to the no-shapes rule. Killed entirely on reduced
 // motion; half the set is desktop-only, the rest stay for mobile (scroll-
 // driven only, no cursor drift there).
-function CardGlyph({ suit, gold }: { suit: string; gold: boolean }) {
-  const tone = gold ? GOLD : EMBER;
+function CardGlyph({ suit, crimson }: { suit: string; crimson: boolean }) {
+  const tone = crimson ? CRIMSON : EMBER;
   return (
     <div
       className="flex h-full w-full items-center justify-center"
       style={{
         borderRadius: 6,
-        background: "linear-gradient(160deg, #1B1526, #0E0A16)",
+        background: "linear-gradient(160deg, #241010, #130808)",
         border: `1px solid ${tone}55`,
         boxShadow: "0 10px 26px rgba(0,0,0,.55)",
       }}
@@ -261,7 +272,7 @@ function DriftCard({
   side,
   offset,
   suit,
-  gold,
+  crimson,
   tilt,
   depth,
   mx,
@@ -271,7 +282,7 @@ function DriftCard({
   side: "left" | "right";
   offset: string;
   suit: string;
-  gold: boolean;
+  crimson: boolean;
   tilt: number;
   depth: number;
   mx: MotionValue<number>;
@@ -298,7 +309,7 @@ function DriftCard({
       className={`absolute h-16 w-11 ${desktopOnly ? "hidden md:block" : "block"}`}
       style={{ top, ...posStyle, y, rotate, opacity: 0.68 }}
     >
-      <CardGlyph suit={suit} gold={gold} />
+      <CardGlyph suit={suit} crimson={crimson} />
     </motion.div>
   );
 }
@@ -308,17 +319,17 @@ const DRIFT_CARDS: Array<{
   side: "left" | "right";
   offset: string;
   suit: string;
-  gold: boolean;
+  crimson: boolean;
   tilt: number;
   depth: number;
   desktopOnly: boolean;
 }> = [
-  { top: "6%", side: "left", offset: "4%", suit: "♠", gold: true, tilt: -16, depth: 34, desktopOnly: false },
-  { top: "16%", side: "right", offset: "6%", suit: "♦", gold: false, tilt: 12, depth: 44, desktopOnly: true },
-  { top: "34%", side: "left", offset: "2%", suit: "♣", gold: true, tilt: 9, depth: 30, desktopOnly: true },
-  { top: "52%", side: "right", offset: "4%", suit: "♥", gold: false, tilt: -11, depth: 40, desktopOnly: false },
-  { top: "70%", side: "left", offset: "7%", suit: "♠", gold: true, tilt: 18, depth: 36, desktopOnly: true },
-  { top: "86%", side: "right", offset: "3%", suit: "♦", gold: true, tilt: -14, depth: 32, desktopOnly: false },
+  { top: "6%", side: "left", offset: "4%", suit: "♠", crimson: true, tilt: -16, depth: 34, desktopOnly: false },
+  { top: "16%", side: "right", offset: "6%", suit: "♦", crimson: false, tilt: 12, depth: 44, desktopOnly: true },
+  { top: "34%", side: "left", offset: "2%", suit: "♣", crimson: true, tilt: 9, depth: 30, desktopOnly: true },
+  { top: "52%", side: "right", offset: "4%", suit: "♥", crimson: false, tilt: -11, depth: 40, desktopOnly: false },
+  { top: "70%", side: "left", offset: "7%", suit: "♠", crimson: true, tilt: 18, depth: 36, desktopOnly: true },
+  { top: "86%", side: "right", offset: "3%", suit: "♦", crimson: true, tilt: -14, depth: 32, desktopOnly: false },
 ];
 
 function DriftingCards() {
@@ -347,7 +358,7 @@ function DriftingCards() {
 
 // ── Dramatic phrase band — the trade marquee's theatrical equivalent
 // (§16e.2). Same seamless measure-and-overfill technique as the rest of the
-// site, restyled: gold/ember on velvet, diamond separators. ─────────────────
+// site, restyled: crimson/ember on velvet, diamond separators. ─────────────────
 const PHRASES = ["Close-up", "Stage", "Mentalism", "Galas", "Weddings"];
 function PhraseBand() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -382,7 +393,7 @@ function PhraseBand() {
           >
             {p}
           </span>
-          <span aria-hidden style={{ color: GOLD }}>
+          <span aria-hidden style={{ color: CRIMSON }}>
             ◆
           </span>
         </span>
@@ -394,7 +405,7 @@ function PhraseBand() {
     <div
       ref={containerRef}
       role="marquee"
-      aria-label="What Elias performs: close-up, stage, mentalism, galas, weddings"
+      aria-label="What Jonah performs: close-up, stage, mentalism, galas, weddings"
       className="relative w-full overflow-hidden whitespace-nowrap py-8"
       style={{ background: SURFACE, borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}
     >
@@ -412,7 +423,7 @@ function PhraseBand() {
   );
 }
 
-// ── Hero — the shuffle (§16d.1). Full-bleed dark, vignetted, a gold spotlight
+// ── Hero — the shuffle (§16d.1). Full-bleed dark, vignetted, a crimson spotlight
 // glow + drifting embers. No real footage exists yet, so the "video" is a
 // theatrical CSS placeholder (glow + vignette + label) — drop a real clip in
 // `HERO_VIDEO_SRC` later and it slots straight in. ───────────────────────────
@@ -428,8 +439,7 @@ function Hero() {
         aria-hidden
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(60% 55% at 50% 28%, rgba(212,165,60,.16), transparent 62%), radial-gradient(90% 70% at 50% 100%, rgba(0,0,0,.7), transparent 60%), linear-gradient(180deg, #0A0711 0%, #0D0A16 55%, #0A0711 100%)",
+          background: `radial-gradient(60% 55% at 50% 28%, ${hexToRgba(CRIMSON, 0.2)}, transparent 62%), radial-gradient(90% 70% at 50% 100%, rgba(0,0,0,.7), transparent 60%), linear-gradient(180deg, ${BG} 0%, ${SURFACE} 55%, ${BG} 100%)`,
         }}
       />
       {HERO_VIDEO_SRC ? (
@@ -449,7 +459,7 @@ function Hero() {
       <div
         aria-hidden
         className="absolute inset-0"
-        style={{ background: "radial-gradient(80% 70% at 50% 40%, transparent 40%, rgba(10,7,17,.65) 100%)" }}
+        style={{ background: `radial-gradient(80% 70% at 50% 40%, transparent 40%, ${hexToRgba(BG, 0.65)} 100%)` }}
       />
 
       <div className={`${wrap} relative flex w-full flex-col items-center pb-24 pt-40 text-center`}>
@@ -477,7 +487,7 @@ function Hero() {
           <a
             href="#magician-book"
             className="mt-10 inline-block px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] transition-transform duration-200 hover:scale-[1.03]"
-            style={{ background: GOLD, color: "#0A0711" }}
+            style={{ background: CRIMSON, color: BG }}
           >
             Book the show
           </a>
@@ -526,18 +536,17 @@ function ShowCard({ show, index }: { show: (typeof SHOWS)[number]; index: number
         whileHover={{ y: -10 }}
         transition={{ duration: 0.55, ease: EASE }}
       >
-        {/* back of card — face down, gold diamond lattice */}
+        {/* back of card — face down, crimson diamond lattice */}
         <div
           className="absolute inset-0 flex items-center justify-center rounded-[8px]"
           style={{
             backfaceVisibility: "hidden",
-            background:
-              "repeating-linear-gradient(45deg, #180F26 0 10px, #14101D 10px 20px)",
-            border: `1px solid ${GOLD}66`,
+            background: `repeating-linear-gradient(45deg, #241010 0 10px, ${SURFACE} 10px 20px)`,
+            border: `1px solid ${CRIMSON}66`,
             boxShadow: "0 16px 40px rgba(0,0,0,.55)",
           }}
         >
-          <span style={{ color: GOLD, fontSize: 30, opacity: 0.85 }}>✦</span>
+          <span style={{ color: CRIMSON, fontSize: 30, opacity: 0.85 }}>✦</span>
         </div>
         {/* front — the revealed show type */}
         <div
@@ -545,12 +554,12 @@ function ShowCard({ show, index }: { show: (typeof SHOWS)[number]; index: number
           style={{
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
-            background: "linear-gradient(165deg, #1B1526, #0E0A16)",
-            border: `1px solid ${GOLD}`,
+            background: "linear-gradient(165deg, #241010, #130808)",
+            border: `1px solid ${CRIMSON}`,
             boxShadow: "0 16px 40px rgba(0,0,0,.55)",
           }}
         >
-          <span className="text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: GOLD }}>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: CRIMSON }}>
             0{index + 1}
           </span>
           <h3 className="mt-2 text-[19px] leading-[1.15]" style={{ color: FG, fontFamily: DISPLAY }}>
@@ -574,7 +583,7 @@ function StaticShowList() {
           className="rounded-[8px] p-5"
           style={{ background: SURFACE, border: `1px solid ${LINE}` }}
         >
-          <span className="text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: GOLD }}>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: CRIMSON }}>
             0{i + 1}
           </span>
           <h3 className="mt-2 text-[19px] leading-[1.15]" style={{ color: FG, fontFamily: DISPLAY }}>
@@ -595,7 +604,7 @@ function TheExperience() {
     <Section id="magician-experience">
       <Embers density={16} />
       <RiseFromDark className="relative">
-        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: GOLD }}>
+        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: CRIMSON }}>
           — The Experience —
         </span>
         <h2
@@ -634,11 +643,11 @@ function Reel() {
       <div
         aria-hidden
         className="absolute inset-0"
-        style={{ background: "radial-gradient(50% 60% at 50% 45%, rgba(212,165,60,.08), transparent 70%)" }}
+        style={{ background: `radial-gradient(50% 60% at 50% 45%, ${hexToRgba(CRIMSON, 0.1)}, transparent 70%)` }}
       />
       <div className={`${wrap} relative py-[96px] text-center md:py-[150px]`}>
         <RiseFromDark>
-          <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: GOLD }}>
+          <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: CRIMSON }}>
             — The Reel —
           </span>
           <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: FG, fontFamily: DISPLAY }}>
@@ -655,7 +664,7 @@ function Reel() {
           >
             <div
               className="flex h-20 w-20 items-center justify-center rounded-full"
-              style={{ border: `1.5px solid ${GOLD}`, background: "rgba(10,7,17,.55)" }}
+              style={{ border: `1.5px solid ${CRIMSON}`, background: hexToRgba(BG, 0.55) }}
             >
               <span
                 style={{
@@ -663,7 +672,7 @@ function Reel() {
                   height: 0,
                   borderTop: "12px solid transparent",
                   borderBottom: "12px solid transparent",
-                  borderLeft: `18px solid ${GOLD}`,
+                  borderLeft: `18px solid ${CRIMSON}`,
                   marginLeft: 4,
                 }}
               />
@@ -684,14 +693,14 @@ const REACTIONS = [
 function Witnessed() {
   return (
     <Section>
-      {/* the one rare mystic-violet touch in the whole demo (§16a) */}
+      {/* the one rare deep-curtain-shadow touch in the whole demo (§16a) */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        style={{ background: `radial-gradient(45% 50% at 50% 0%, ${VIOLET}1a, transparent 70%)` }}
+        style={{ background: `radial-gradient(45% 50% at 50% 0%, ${DEEP_RED}1a, transparent 70%)` }}
       />
       <RiseFromDark>
-        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: GOLD }}>
+        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: CRIMSON }}>
           — Witnessed —
         </span>
         <h2 className="mt-4 text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: FG, fontFamily: DISPLAY }}>
@@ -705,7 +714,7 @@ function Witnessed() {
         {REACTIONS.map((r, i) => (
           <RiseFromDark key={r.who} delay={Math.min(i * 0.08, 0.2)}>
             <div className="pt-6" style={{ borderTop: `1px solid ${LINE}` }}>
-              <span style={{ color: GOLD, fontSize: 26, fontFamily: DISPLAY }}>&ldquo;</span>
+              <span style={{ color: CRIMSON, fontSize: 26, fontFamily: DISPLAY }}>&ldquo;</span>
               <p className="mt-1 text-[16px] leading-[1.6]" style={{ color: FG, fontFamily: DISPLAY, fontStyle: "italic" }}>
                 {r.line}
               </p>
@@ -729,7 +738,7 @@ function About() {
           <Placeholder label="PORTRAIT — the magician, low key (4:5)" ratio="4/5" glow />
         </RiseFromDark>
         <RiseFromDark delay={0.1}>
-          <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: GOLD }}>
+          <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: CRIMSON }}>
             — About —
           </span>
           <h2 className="mt-4 text-[32px] uppercase leading-[1.08] md:text-[44px]" style={{ color: FG, fontFamily: DISPLAY }}>
@@ -738,7 +747,7 @@ function About() {
             <span style={{ color: BODY }}>A decision, made in front of you.</span>
           </h2>
           <p className="mt-6 max-w-md text-[16px] leading-[1.7]" style={{ color: BODY }}>
-            Elias started with a deck of cards and an audience of one — himself,
+            Jonah started with a deck of cards and an audience of one — himself,
             in a mirror, for longer than he&apos;d like to admit. These days it&apos;s
             close-up rooms, full stages, and the occasional wedding, but the
             method never changes: get close enough that the audience stops
@@ -760,7 +769,7 @@ function WhereItWorks() {
   return (
     <Section className="text-center">
       <RiseFromDark>
-        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: GOLD }}>
+        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: CRIMSON }}>
           — Where It Works —
         </span>
         <h2 className="mx-auto mt-4 max-w-2xl text-[32px] uppercase leading-[1.1] md:text-[46px]" style={{ color: FG, fontFamily: DISPLAY }}>
@@ -774,7 +783,7 @@ function WhereItWorks() {
               <span className="text-[15px] md:text-[18px]" style={{ color: FG, fontFamily: DISPLAY }}>
                 {v}
               </span>
-              {i < VENUES.length - 1 && <span style={{ color: GOLD }}>◆</span>}
+              {i < VENUES.length - 1 && <span style={{ color: CRIMSON }}>◆</span>}
             </span>
           ))}
         </div>
@@ -783,7 +792,7 @@ function WhereItWorks() {
   );
 }
 
-// ── Booking — the conversion point (§16e.8). Local demo state, gold button. ─
+// ── Booking — the conversion point (§16e.8). Local demo state, crimson button. ─
 const EVENT_TYPES = ["Corporate event", "Gala / fundraiser", "Private party", "Wedding", "Theater / live show", "Not sure yet"];
 function Booking() {
   const [state, setState] = useState<"idle" | "ok" | "err">("idle");
@@ -799,7 +808,7 @@ function Booking() {
     <Section id="magician-book" className="" >
       <div className="grid gap-12 md:grid-cols-2 md:gap-16">
         <RiseFromDark>
-          <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: GOLD }}>
+          <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: CRIMSON }}>
             — Booking —
           </span>
           <h2 className="mt-4 text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: FG, fontFamily: DISPLAY }}>
@@ -862,7 +871,7 @@ function Booking() {
                 type="button"
                 onClick={() => setState("ok")}
                 className="px-6 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em]"
-                style={{ background: GOLD, color: "#0A0711" }}
+                style={{ background: CRIMSON, color: BG }}
               >
                 Send it
               </button>
@@ -884,7 +893,7 @@ function Booking() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   className="text-[15px]"
-                  style={{ color: GOLD }}
+                  style={{ color: CRIMSON }}
                 >
                   Got it — I&apos;ll get back to you within a day.
                 </motion.p>
@@ -898,7 +907,7 @@ function Booking() {
                   style={{ color: FG }}
                 >
                   That didn&apos;t send. Call or text {PHONE}, or{" "}
-                  <button type="button" onClick={() => setState("idle")} className="underline" style={{ color: GOLD }}>
+                  <button type="button" onClick={() => setState("idle")} className="underline" style={{ color: CRIMSON }}>
                     try again
                   </button>.
                 </motion.p>

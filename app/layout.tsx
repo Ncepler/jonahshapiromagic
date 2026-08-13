@@ -17,7 +17,7 @@ const interTight = Inter_Tight({
 });
 
 export const metadata: Metadata = {
-  title: "Elias Vane — Magician & Mentalist (Demo)",
+  title: "Jonah Shapiro — Magician & Mentalist (Demo)",
   description:
     "Close-up magic, stage illusions, and mentalism for corporate events, galas, weddings, and private parties. Demo build / sample site.",
 };

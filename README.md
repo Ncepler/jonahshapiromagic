@@ -1,9 +1,9 @@
-# Elias Vane — demo site
+# Jonah Shapiro — demo site
 
 Next.js (App Router) + TypeScript + Tailwind CSS + [motion](https://motion.dev).
 
 This is a sample/demo one-pager for a fictional close-up magician & mentalist,
-"Elias Vane." It's a style demo, not a real business.
+"Jonah Shapiro." It's a style demo, not a real business.
 
 ## Getting started
 
