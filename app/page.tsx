@@ -935,7 +935,11 @@ function MagicianFooter() {
   );
 }
 
-export function MagicianDemo() {
+export default function Page() {
+  return <MagicianDemo />;
+}
+
+function MagicianDemo() {
   return (
     // wraps ALL of the magician's content, only this demo — see
     // MagicianCursor.tsx for exactly how the wand cursor stays scoped here
