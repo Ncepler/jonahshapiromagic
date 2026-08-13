@@ -1,18 +1,17 @@
 "use client";
 
-// Style demo — Jonah Shapiro, a close-up/stage magician & mentalist, in the
-// THEATRICAL EXCEPTION system (SKILL §16). This is the one demo that
-// deliberately throws out the local-service DNA everywhere else in
-// components/demos/*: no editorial restraint, no hairline-and-eyebrow spine,
-// no "zero decorative shapes," no subtle motion. Spectacle IS the design —
-// floating cards, embers, a shuffle-video hero, a pick-a-card interaction.
-// Self-contained on purpose (does NOT import from ./system, which is the
-// local-service spine) — this file is its own small design system.
+// Jonah Shapiro, a close-up/stage magician & mentalist, in the THEATRICAL
+// EXCEPTION system (SKILL §16). This is the one page that deliberately
+// throws out the local-service DNA everywhere else in components/examples/*:
+// no editorial restraint, no hairline-and-eyebrow spine, no "zero decorative
+// shapes," no subtle motion. Spectacle IS the design — floating cards,
+// embers, a shuffle-video hero, a pick-a-card interaction. Self-contained on
+// purpose (does NOT import from ./system, which is the local-service spine)
+// — this file is its own small design system.
 //
 // The only rules that still apply here: honesty (§12/§16f — no fabricated
-// credits/celebrities/awards/"sold out"), labeled placeholders (§10), and the
-// "demo build" label. "Jonah Shapiro" is a sample brand for the demo, not a
-// real performer. Spec: .claude/skills/local-service-design-system/SKILL.md §16
+// credits/celebrities/awards/"sold out") and labeled placeholders (§10).
+// Spec: .claude/skills/local-service-design-system/SKILL.md §16
 
 import {
   AnimatePresence,
@@ -92,7 +91,7 @@ const SANS = "var(--font-tight)"; // clean quiet body sans
 
 const NAME = "Jonah Shapiro";
 const PHONE = "(516) 555-0199";
-const EMAIL = "hello@jonahshapiro.demo";
+const EMAIL = "hello@jonahshapiro.com";
 const AREA = "Based on Long Island, NY — available across the tri-state area";
 
 const wrap = "mx-auto w-full max-w-[1160px] px-6 md:px-16";
@@ -139,44 +138,6 @@ function RiseFromDark({
   );
 }
 
-// ── Labeled placeholder — no real footage/photos exist yet (§10/§16f). ───────
-function Placeholder({
-  label,
-  ratio = "16/9",
-  className = "",
-  glow = false,
-}: {
-  label: string;
-  ratio?: string;
-  className?: string;
-  glow?: boolean;
-}) {
-  return (
-    <div
-      className={`relative w-full overflow-hidden rounded-[6px] ${className}`}
-      style={{ aspectRatio: ratio, background: BG_ELEVATED, border: `1px solid ${BORDER}` }}
-    >
-      {glow && (
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(60% 60% at 50% 35%, ${hexToRgba(ACCENT, 0.14)}, transparent 70%)`,
-          }}
-        />
-      )}
-      <div className="absolute inset-3 flex items-end justify-start">
-        <span
-          className="text-[10px] font-semibold uppercase tracking-[0.18em]"
-          style={{ color: TEXT_MUTED }}
-        >
-          {label}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 // Kept deliberately independent of the palette above — this ambient particle
 // layer is a "particle system" per the redesign brief and stays untouched,
 // same two warm-red tones it's always used, regardless of what the rest of
@@ -186,7 +147,7 @@ const EMBER_PARTICLE_B = "#C9432B";
 
 // ── Embers — a capped, low-density canvas particle layer (§16d.3). Off on
 // reduced-motion, lighter on mobile, entirely content-free decoration (the
-// one place in the whole demo system that's allowed, per the §16 exception).
+// one place on the whole page that's allowed, per the §16 exception).
 function Embers({ density = 26 }: { density?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const reduced = useReducedMotion();
@@ -499,12 +460,6 @@ function Hero() {
 
       <div className={`${wrap} relative flex w-full flex-col items-center pb-24 pt-40 text-center`}>
         <RiseFromDark>
-          <span
-            className="mb-8 inline-block rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]"
-            style={{ color: TEXT_MUTED, border: `1px solid ${BORDER}` }}
-          >
-            Demo build — sample act
-          </span>
           <h1
             className="text-[15vw] uppercase leading-[0.92] tracking-[0.02em] sm:text-[9vw] md:text-[6.5rem]"
             style={{ color: TEXT, fontFamily: DISPLAY }}
@@ -533,9 +488,6 @@ function Hero() {
         >
           Scroll
         </div>
-        {!HERO_VIDEO_SRC && (
-          <span className="sr-only">Placeholder: hero card shuffle / flourish loop, 16:9, dark</span>
-        )}
       </div>
     </section>
   );
@@ -669,49 +621,82 @@ function TheExperience() {
   );
 }
 
-// ── The Reel — the proof moment (§16e.4). Full-bleed, one dramatic play
-// button, no real footage yet. Plain dark background on purpose — no
-// curtain wash here, that's reserved for the hero and booking sections only.
-function Reel() {
-  const reduced = useReducedMotion();
+// ── Trick of the Day — a playbill-style gateway to Jonah's TikTok. Plain
+// base-bg section, no curtain wash here — that stays reserved for the hero
+// and booking sections; the red glow lives contained inside the card only.
+const TIKTOK_URL = "https://www.tiktok.com/@shap_shufflz_magic";
+const TIKTOK_HANDLE = "@shap_shufflz_magic";
+
+function TrickOfTheDay() {
   return (
-    <section className="relative w-full" style={{ background: BG_ELEVATED, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>
-      <div className={`${wrap} relative py-[96px] text-center md:py-[150px]`}>
-        <RiseFromDark>
-          <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
-            — The Reel —
-          </span>
-          <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-            Watch it happen.
-          </h2>
-        </RiseFromDark>
-        <RiseFromDark delay={0.12} className="relative mx-auto mt-12 max-w-3xl">
-          <Placeholder label="REEL — live performance (16:9)" />
-          <motion.div
+    <Section className="text-center">
+      <RiseFromDark>
+        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
+          — Tonight&apos;s Showing —
+        </span>
+        <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+          Trick of the day.
+        </h2>
+        <p className="mt-3 text-[15px]" style={{ color: TEXT_MUTED }}>
+          A new one, every day. Nobody&apos;s caught the method yet.
+        </p>
+      </RiseFromDark>
+      <RiseFromDark delay={0.12} className="mt-12">
+        <style>{`
+          .trick-card {
+            transition: border-color 200ms ease-out, transform 250ms ease-out, box-shadow 250ms ease-out;
+          }
+          .trick-card:hover {
+            border-color: ${ACCENT} !important;
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px ${hexToRgba(CURTAIN, 0.3)};
+          }
+          .trick-card:hover .trick-card-glow { opacity: 0.5; }
+          .trick-card:hover .trick-card-glyph { transform: rotate(90deg); }
+          .trick-card:hover .trick-card-arrow { transform: translateX(4px); }
+        `}</style>
+        <a
+          href={TIKTOK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit Jonah Shapiro's TikTok — @shap_shufflz_magic"
+          className="trick-card relative mx-auto flex w-full max-w-[800px] flex-col items-center justify-center gap-4 overflow-hidden px-8 py-14 md:h-[400px] md:py-0"
+          style={{ background: BG_ELEVATED, border: `1px solid ${hexToRgba(ACCENT, 0.3)}`, borderRadius: 4 }}
+        >
+          <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 flex items-center justify-center"
-            animate={reduced ? undefined : { scale: [1, 1.06, 1] }}
-            transition={reduced ? undefined : { duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+            className="trick-card-glow pointer-events-none absolute inset-0"
+            style={{
+              background: `radial-gradient(circle at 50% 50%, ${hexToRgba(CURTAIN, 1)} 0%, transparent 70%)`,
+              opacity: 0.3,
+              transition: "opacity 250ms ease-out",
+            }}
+          />
+          <span
+            aria-hidden
+            className="trick-card-glyph relative inline-block"
+            style={{ color: ACCENT, fontSize: 32, opacity: 0.7, transition: "transform 300ms ease-out" }}
           >
-            <div
-              className="flex h-20 w-20 items-center justify-center rounded-full"
-              style={{ border: `1.5px solid ${TEXT}`, background: hexToRgba(BG, 0.55) }}
-            >
-              <span
-                style={{
-                  width: 0,
-                  height: 0,
-                  borderTop: "12px solid transparent",
-                  borderBottom: "12px solid transparent",
-                  borderLeft: `18px solid ${TEXT}`,
-                  marginLeft: 4,
-                }}
-              />
-            </div>
-          </motion.div>
-        </RiseFromDark>
-      </div>
-    </section>
+            ✦
+          </span>
+          <span className="relative text-[2.5rem] leading-[1.1]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+            Reveal today&apos;s trick
+          </span>
+          <span
+            className="trick-card-arrow relative inline-block text-[15px]"
+            style={{ color: TEXT_MUTED, transition: "transform 250ms ease-out" }}
+          >
+            → opens on TikTok
+          </span>
+          <span
+            className="relative mt-2 text-[12px] font-semibold uppercase tracking-[0.18em]"
+            style={{ color: TEXT_MUTED }}
+          >
+            {TIKTOK_HANDLE}
+          </span>
+        </a>
+      </RiseFromDark>
+    </Section>
   );
 }
 
@@ -732,9 +717,6 @@ function Witnessed() {
         <h2 className="mt-4 text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
           What the room says after.
         </h2>
-        <p className="mt-3 text-[13px]" style={{ color: TEXT_MUTED }}>
-          Illustrative reactions for this demo — not real client quotes.
-        </p>
       </RiseFromDark>
       <div className="mt-14 grid gap-8 md:grid-cols-3">
         {REACTIONS.map((r, i) => (
@@ -829,7 +811,7 @@ function WhereItWorks() {
   );
 }
 
-// ── Booking — the conversion point (§16e.8). Local demo state. The second
+// ── Booking — the conversion point (§16e.8). Local component state. The second
 // (and last) curtain-wash section — bookends the hero at the bottom of the
 // page, subtler than the hero's. ─────────────────────────────────────────
 const EVENT_TYPES = ["Corporate event", "Gala / fundraiser", "Private party", "Wedding", "Theater / live show", "Not sure yet"];
@@ -927,7 +909,7 @@ function Booking() {
                   className="text-[13px]"
                   style={{ color: TEXT_MUTED }}
                 >
-                  (demo: preview error state)
+                  (preview error state)
                 </button>
               )}
             </div>
@@ -982,7 +964,7 @@ function MagicianFooter() {
           <span>Instagram</span>
         </div>
         <p className="mt-8 text-[12px]" style={{ color: TEXT_MUTED }}>
-          © 2026 {NAME} — demo build / sample site, not a real performer.
+          © 2026 {NAME}. All rights reserved.
         </p>
       </div>
     </footer>
@@ -990,12 +972,12 @@ function MagicianFooter() {
 }
 
 export default function Page() {
-  return <MagicianDemo />;
+  return <MagicianSite />;
 }
 
-function MagicianDemo() {
+function MagicianSite() {
   return (
-    // wraps ALL of the magician's content, only this demo — see
+    // wraps ALL of the magician's content, only this page — see
     // MagicianCursor.tsx for exactly how the wand cursor stays scoped here
     <MagicianCursor>
       <div className="antialiased" style={{ background: BG, color: TEXT_MUTED, fontFamily: SANS, position: "relative" }}>
@@ -1010,14 +992,14 @@ function MagicianDemo() {
             color: ${TEXT} !important;
           }
         `}</style>
-        {/* the drifting-card layer spans the whole demo, positioned by % of its
+        {/* the drifting-card layer spans the whole page, positioned by % of its
             total height — mounted once, absolute, behind section content */}
         <DriftingCards />
         <div className="relative">
           <Hero />
           <PhraseBand />
           <TheExperience />
-          <Reel />
+          <TrickOfTheDay />
           <Witnessed />
           <About />
           <WhereItWorks />

@@ -9,8 +9,8 @@
 // in the direction OPPOSITE the wand's motion — a trail left behind, like a
 // sparkler — then arc and fall under gravity as they cool and fade,
 // rendered as short streaks, not dots. ALWAYS active inside the magician
-// demo (this component wraps just that content, see app/page.tsx's
-// MagicianDemo export).
+// page (this component wraps just that content, see app/page.tsx's
+// MagicianSite export).
 
 import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { useEffect, useRef, type ReactNode } from "react";
@@ -243,7 +243,7 @@ export function MagicianCursor({ children }: { children: ReactNode }) {
           `cursor: none` up here on the wrapper alone gets overridden the
           moment the pointer reaches anything clickable. This !important
           rule reaches every descendant so the system cursor can't come
-          back anywhere inside the demo. */}
+          back anywhere on the page. */}
       <style>{`
         .jonah-wand-cursor-scope,
         .jonah-wand-cursor-scope * {
