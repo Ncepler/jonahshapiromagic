@@ -12,6 +12,10 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Matches the page's BG constant in app/page.tsx (near-black, warm
+   undertone). This is what shows through during rubber-band overscroll on
+   mobile, so it has to be the page's own background — a cooler/bluer value
+   here reads as a stray blue band above or below the content. */
 body {
-  background: #0a0711;
+  background: #0a0505;
 }
