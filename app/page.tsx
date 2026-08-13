@@ -1041,7 +1041,7 @@ function curtainStripStyle(shade: number): CSSProperties {
   return {
     position: "relative",
     height: "100%",
-    width: `${100 / CURTAIN_STRIP_COUNT}%`,
+    width: "100%",
     background: `repeating-linear-gradient(90deg, ${CURTAIN} 0px, ${CURTAIN_DEEP} 11px, ${CURTAIN} 22px)`,
     boxShadow:
       "inset 7px 0 14px -8px rgba(0,0,0,0.65), inset -7px 0 14px -8px rgba(0,0,0,0.65), inset 0 0 50px rgba(0,0,0,0.4)",
@@ -1126,6 +1126,7 @@ function CurtainReveal() {
         .jonah-curtain-panel-l { animation-name: jonah-curtain-l; }
         .jonah-curtain-panel-r { animation-name: jonah-curtain-r; }
         .jonah-curtain-flutter-el {
+          flex: 1 1 0%;
           height: 100%;
           animation-name: jonah-curtain-flutter;
           animation-duration: ${CURTAIN_MOVE_MS}ms;
