@@ -987,6 +987,151 @@ function MagicianFooter() {
   );
 }
 
+// ── Curtain Reveal — the very first thing the page shows: a full-bleed red
+// curtain holding for a beat, then splitting open to reveal the site
+// underneath, gone for good the moment it finishes. Pure CSS, no JS/state —
+// same pattern as PhraseBand's marquee — so it can't flash open before
+// first paint (SSR ships it already closed) and it opts out of motion on
+// its own via prefers-reduced-motion, no hook required. Sits below the wand
+// cursor's z-index (998/999) so the cursor stays visible on top of it, and
+// above everything else on the page (z-900) so it fully covers the site on
+// arrival. ─────────────────────────────────────────────────────────────────
+const CURTAIN_PANEL_BG: CSSProperties = {
+  background: `repeating-linear-gradient(90deg, ${CURTAIN} 0px, ${CURTAIN_DEEP} 16px, ${CURTAIN} 32px)`,
+  boxShadow: "inset 0 0 90px rgba(0,0,0,0.55)",
+};
+const CURTAIN_FOLD_SHEEN: CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  background:
+    "linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 14%, transparent 86%, rgba(0,0,0,0.28) 100%)",
+};
+const CURTAIN_FLOOR_SHADOW: CSSProperties = {
+  position: "absolute",
+  inset: "auto 0 0 0",
+  height: "20%",
+  background: "linear-gradient(to top, rgba(0,0,0,0.45), transparent)",
+};
+// six fixed spark positions along the seam — hardcoded, not randomized, so
+// server and client markup always match
+const CURTAIN_SPARKS: Array<{ top: string; size: number; dx: string; dy: string }> = [
+  { top: "16%", size: 4, dx: "-48px", dy: "-12px" },
+  { top: "28%", size: 3, dx: "40px", dy: "8px" },
+  { top: "42%", size: 5, dx: "-62px", dy: "16px" },
+  { top: "56%", size: 3, dx: "52px", dy: "-10px" },
+  { top: "68%", size: 4, dx: "-36px", dy: "20px" },
+  { top: "80%", size: 3, dx: "46px", dy: "12px" },
+];
+
+function CurtainReveal() {
+  return (
+    <div
+      aria-hidden
+      className="jonah-curtain jonah-curtain-gone pointer-events-none fixed inset-0 overflow-hidden"
+      style={{ zIndex: 900 }}
+    >
+      <style>{`
+        @keyframes jonah-curtain-l {
+          0%, 22% { transform: translateX(0); }
+          100% { transform: translateX(-101%); visibility: hidden; }
+        }
+        @keyframes jonah-curtain-r {
+          0%, 22% { transform: translateX(0); }
+          100% { transform: translateX(101%); visibility: hidden; }
+        }
+        @keyframes jonah-curtain-rail {
+          0%, 22% { opacity: 1; }
+          60%, 100% { opacity: 0; }
+        }
+        @keyframes jonah-curtain-flash {
+          0%, 15% { opacity: 0; }
+          28% { opacity: 1; }
+          50%, 100% { opacity: 0; }
+        }
+        @keyframes jonah-curtain-spark {
+          0%, 22% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+          34% { opacity: 1; }
+          64%, 100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(1); }
+        }
+        @keyframes jonah-curtain-gone {
+          0%, 96% { visibility: visible; }
+          100% { visibility: hidden; }
+        }
+        .jonah-curtain-panel {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 51%;
+          animation-duration: 1800ms;
+          animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+          animation-fill-mode: forwards;
+        }
+        .jonah-curtain-panel-l { left: 0; animation-name: jonah-curtain-l; }
+        .jonah-curtain-panel-r { right: 0; animation-name: jonah-curtain-r; }
+        .jonah-curtain-rail-el { animation: jonah-curtain-rail 1800ms ease-out forwards; }
+        .jonah-curtain-flash-el { animation: jonah-curtain-flash 1800ms ease-out forwards; }
+        .jonah-curtain-spark-el { animation: jonah-curtain-spark 1800ms ease-out forwards; }
+        .jonah-curtain-gone { animation: jonah-curtain-gone 1800ms linear forwards; }
+        @media (prefers-reduced-motion: reduce) {
+          .jonah-curtain { display: none; }
+        }
+      `}</style>
+
+      {/* the rail/rod the curtain hangs from */}
+      <div
+        className="jonah-curtain-rail-el absolute inset-x-0 top-0 h-3"
+        style={{ background: `linear-gradient(180deg, ${hexToRgba(ACCENT, 0.5)}, transparent)` }}
+      />
+
+      {/* a warm flash of "stage light" right as the curtain starts to part */}
+      <div
+        className="jonah-curtain-flash-el absolute inset-0"
+        style={{ background: `radial-gradient(45% 60% at 50% 45%, ${hexToRgba("#f5e6c8", 0.22)}, transparent 70%)` }}
+      />
+
+      <div className="jonah-curtain-panel jonah-curtain-panel-l" style={CURTAIN_PANEL_BG}>
+        <div style={CURTAIN_FOLD_SHEEN} />
+        <div
+          className="absolute inset-y-0 right-0"
+          style={{ width: 3, background: ACCENT, opacity: 0.55, boxShadow: `0 0 12px ${hexToRgba(ACCENT, 0.6)}` }}
+        />
+        <div style={CURTAIN_FLOOR_SHADOW} />
+      </div>
+
+      <div className="jonah-curtain-panel jonah-curtain-panel-r" style={CURTAIN_PANEL_BG}>
+        <div style={CURTAIN_FOLD_SHEEN} />
+        <div
+          className="absolute inset-y-0 left-0"
+          style={{ width: 3, background: ACCENT, opacity: 0.55, boxShadow: `0 0 12px ${hexToRgba(ACCENT, 0.6)}` }}
+        />
+        <div style={CURTAIN_FLOOR_SHADOW} />
+      </div>
+
+      {/* a small burst of sparks off the seam as it splits open */}
+      <div className="absolute inset-y-0 left-1/2 w-0">
+        {CURTAIN_SPARKS.map((s, i) => (
+          <span
+            key={i}
+            className="jonah-curtain-spark-el absolute rounded-full"
+            style={
+              {
+                top: s.top,
+                left: 0,
+                width: s.size,
+                height: s.size,
+                background: ACCENT,
+                boxShadow: `0 0 6px ${hexToRgba(ACCENT, 0.8)}`,
+                "--sx": s.dx,
+                "--sy": s.dy,
+              } as CSSProperties
+            }
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Page() {
   return <MagicianSite />;
 }
@@ -997,6 +1142,7 @@ function MagicianSite() {
     // MagicianCursor.tsx for exactly how the wand cursor stays scoped here
     <MagicianCursor>
       <div className="antialiased" style={{ background: BG, color: TEXT_MUTED, fontFamily: SANS, position: "relative" }}>
+        <CurtainReveal />
         {/* Shared hover state for the two curtain-styled CTAs ("Book the
             show" / "Send it") — background shifts to a faint gold wash on
             hover. !important is required here: it's overriding each
