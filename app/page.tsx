@@ -451,7 +451,8 @@ function StickyBar() {
   }, []);
 
   return (
-    <div
+    <header
+      role="banner"
       className="fixed inset-x-0 top-0 h-[60px]"
       style={{
         zIndex: 100,
@@ -478,7 +479,9 @@ function StickyBar() {
         <a
           href="#magician-book"
           tabIndex={visible ? undefined : -1}
-          className="magician-curtain-btn text-[0.85rem] font-semibold uppercase tracking-[0.1em]"
+          // min-h keeps the tap target at 44px on a phone; the bar is 60px
+          // tall, so there's room for it without touching the layout
+          className="magician-curtain-btn inline-flex min-h-[44px] items-center text-[0.85rem] font-semibold uppercase tracking-[0.1em]"
           style={{
             background: BG_ELEVATED,
             color: TEXT,
@@ -489,7 +492,7 @@ function StickyBar() {
           Book
         </a>
       </div>
-    </div>
+    </header>
   );
 }
 
@@ -663,7 +666,7 @@ function ShowCard({ show, index }: { show: (typeof SHOWS)[number]; index: number
             boxShadow: "0 16px 40px rgba(0,0,0,.55)",
           }}
         >
-          <span style={{ color: ACCENT, fontSize: 30, opacity: 0.6 }}>✦</span>
+          <span aria-hidden style={{ color: ACCENT, fontSize: 30, opacity: 0.6 }}>✦</span>
         </div>
         {/* front — the revealed show type */}
         <div
@@ -907,7 +910,7 @@ function WhatItCosts() {
               <p className="mt-3 text-[1.5rem] tracking-[0.04em]" style={{ color: TEXT, fontFamily: DISPLAY }}>
                 {p.price}
               </p>
-              <p className="mt-4 text-[0.85rem] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+              <p className="mt-4 text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
                 {p.desc}
               </p>
             </div>
@@ -915,7 +918,7 @@ function WhatItCosts() {
         ))}
       </div>
       <RiseFromDark delay={0.24}>
-        <p className="mt-10 text-[13px]" style={{ color: TEXT_MUTED }}>
+        <p className="mt-10 text-[14px]" style={{ color: TEXT_MUTED }}>
           Weddings, corporate events, and travel outside the tri-state area are quoted separately.
         </p>
       </RiseFromDark>
@@ -1086,6 +1089,7 @@ function Faq() {
             <div key={item.q} style={{ borderBottom: `1px solid ${BORDER}` }}>
               <button
                 type="button"
+                id={`faq-question-${i}`}
                 onClick={() => setOpen(isOpen ? null : i)}
                 aria-expanded={isOpen}
                 aria-controls={`faq-answer-${i}`}
@@ -1108,13 +1112,20 @@ function Faq() {
               </button>
               <div
                 id={`faq-answer-${i}`}
+                role="region"
+                aria-labelledby={`faq-question-${i}`}
                 style={{
                   display: "grid",
                   gridTemplateRows: isOpen ? "1fr" : "0fr",
                   transition: "grid-template-rows 250ms ease-out",
                 }}
               >
-                <div style={{ overflow: "hidden" }}>
+                {/* A collapsed panel is only visually collapsed — the text
+                    stays in the DOM so the height can animate to it. Hiding
+                    it from the a11y tree too keeps aria-expanded honest,
+                    instead of a screen reader reading all six answers
+                    straight through whatever the buttons claim. */}
+                <div aria-hidden={!isOpen} style={{ overflow: "hidden" }}>
                   <p className="pb-6 pr-8 text-[15px] leading-[1.75]" style={{ color: TEXT_MUTED }}>
                     {item.a}
                   </p>
@@ -1140,7 +1151,7 @@ function About() {
           >
             <Image
               src="/JonahPortrait.jpg"
-              alt="Jonah Shapiro, who performs as Shap Shufflz — portrait"
+              alt="Jonah Shapiro in a black suit and black shirt, lit from one side against a dark red stage curtain"
               fill
               sizes="(min-width: 768px) 40vw, 90vw"
               className="object-cover"
@@ -1511,7 +1522,7 @@ function InstagramBlock() {
 // ── Footer — dark, minimal, one dramatic line (§16e.9). ──────────────────────
 function MagicianFooter() {
   return (
-    <footer className="w-full" style={{ background: BG_ELEVATED, borderTop: `1px solid ${BORDER}` }}>
+    <footer role="contentinfo" className="w-full" style={{ background: BG_ELEVATED, borderTop: `1px solid ${BORDER}` }}>
       <div className={`${wrap} py-14 text-center`}>
         <span className="text-[22px] uppercase tracking-[0.04em]" style={{ color: TEXT, fontFamily: DISPLAY }}>
           {NAME}
@@ -1522,18 +1533,26 @@ function MagicianFooter() {
         <p className="mx-auto mt-3 max-w-sm text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED, fontFamily: DISPLAY, fontStyle: "italic" }}>
           Close enough to see it. Still won&apos;t believe it.
         </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px]" style={{ color: TEXT_MUTED }}>
-          <span>{site.phone}</span>
-          <span>{site.email}</span>
-          <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" style={{ color: TEXT_MUTED }}>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 text-[14px]" style={{ color: TEXT_MUTED }}>
+          <span className="inline-flex min-h-[44px] items-center">{site.phone}</span>
+          <span className="inline-flex min-h-[44px] items-center">{site.email}</span>
+          <a
+            href={site.instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-[44px] items-center"
+            style={{ color: TEXT_MUTED }}
+          >
             Instagram
           </a>
         </div>
-        <p className="mt-8 text-[12px]" style={{ color: TEXT_MUTED }}>
+        <p className="mt-6 text-[14px]" style={{ color: TEXT_MUTED }}>
           © 2026 {NAME}. All rights reserved.
         </p>
-        {/* Plain text, not a link — vilas.studio doesn't resolve. */}
-        <p className="mt-2 text-[11px]" style={{ color: TEXT_MUTED, opacity: 0.75 }}>
+        {/* Plain text, not a link — vilas.studio doesn't resolve. No opacity
+            on it either: TEXT_MUTED clears AA on its own (4.75:1 here), but
+            dimming it to 75% dropped this line to 3.16:1. */}
+        <p className="mt-2 text-[14px]" style={{ color: TEXT_MUTED }}>
           Site by vilas.studio
         </p>
       </div>
@@ -1736,7 +1755,7 @@ function MagicianSite() {
     // wraps ALL of the magician's content, only this page — see
     // MagicianCursor.tsx for exactly how the wand cursor stays scoped here
     <MagicianCursor>
-      <div className="antialiased" style={{ background: BG, color: TEXT_MUTED, fontFamily: SANS, position: "relative" }}>
+      <div className="magician-focus-scope antialiased" style={{ background: BG, color: TEXT_MUTED, fontFamily: SANS, position: "relative" }}>
         <CurtainReveal />
         {/* Shared hover state for the two curtain-styled CTAs ("Book the
             show" / "Send it") — background shifts to a faint gold wash on
@@ -1744,6 +1763,24 @@ function MagicianSite() {
             button's own inline `style`, which a plain stylesheet rule can't
             outrank on specificity alone. */}
         <style>{`
+          /* One focus indicator for the whole page. Everything here is
+             painted with inline styles and custom borders, so without a
+             single explicit rule the keyboard ring is whatever the browser
+             happens to draw on a near-black background — usually a thin
+             dark outline that disappears. Gold at 2px with 2px of offset
+             clears every surface on the page. Nothing anywhere removes an
+             outline; if a new element needs its own ring, extend this rule
+             rather than suppressing it locally. */
+          .magician-focus-scope :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
+          /* A date field is several tab stops, not one: the browser builds
+             month/day/year as separate segments inside the input's shadow
+             tree, and on the last of them the host stops matching
+             :focus-visible while focus is still inside the field — the ring
+             blinks out mid-field. :focus-within holds it for all three. */
+          .magician-focus-scope input[type="date"]:focus-within {
+            outline: 2px solid ${ACCENT};
+            outline-offset: 2px;
+          }
           .magician-curtain-btn:not(:disabled):hover {
             background-color: ${hexToRgba(ACCENT, 0.15)} !important;
             color: ${TEXT} !important;
@@ -1777,7 +1814,7 @@ function MagicianSite() {
             total height — mounted once, absolute, behind section content */}
         <DriftingCards />
         <StickyBar />
-        <div className="relative">
+        <main className="relative">
           <Hero />
           <RecentlyPerformedAt />
           <PhraseBand />
@@ -1789,8 +1826,8 @@ function MagicianSite() {
           <About />
           <Booking />
           <InstagramBlock />
-          <MagicianFooter />
-        </div>
+        </main>
+        <MagicianFooter />
       </div>
     </MagicianCursor>
   );

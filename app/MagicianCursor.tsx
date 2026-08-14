@@ -8,11 +8,12 @@
 // angles up-and-to-the-right. Sparks kick off the tip (the upper-right cap)
 // in the direction OPPOSITE the wand's motion — a trail left behind, like a
 // sparkler — then arc and fall under gravity as they cool and fade,
-// rendered as short streaks, not dots. ALWAYS active inside the magician
-// page (this component wraps just that content, see app/page.tsx's
-// MagicianSite export).
+// rendered as short streaks, not dots. Active inside the magician page (this
+// component wraps just that content, see app/page.tsx's MagicianSite export)
+// wherever there's a real pointer and the visitor hasn't asked for reduced
+// motion — see the fallback in MagicianCursor below.
 
-import { motion, useMotionValue, type MotionValue } from "motion/react";
+import { motion, useMotionValue, useReducedMotion, type MotionValue } from "motion/react";
 import { useEffect, useRef, type ReactNode } from "react";
 import { useCanHover } from "@/lib/hooks";
 
@@ -232,20 +233,27 @@ export function MagicianCursor({ children }: { children: ReactNode }) {
   // touch devices never render any of this and desktop gets it a beat
   // after hydration — same tradeoff DriftingCards already makes.
   const canHover = useCanHover();
+  // Under prefers-reduced-motion the wand goes away entirely — not a stiller
+  // wand, no wand. The whole thing is a moving object chased by a stream of
+  // falling particles, and there's no version of that which honours the
+  // request. Falling back means the real system cursor comes back too: the
+  // `cursor: none` rule below is part of the effect, so it can't outlive it.
+  const reduced = useReducedMotion();
+  const active = canHover && !reduced;
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
 
   useEffect(() => {
-    if (!canHover) return;
+    if (!active) return;
     const onMove = (e: PointerEvent) => {
       x.set(e.clientX);
       y.set(e.clientY);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
-  }, [canHover, x, y]);
+  }, [active, x, y]);
 
-  if (!canHover) {
+  if (!active) {
     return <div className="relative">{children}</div>;
   }
 
