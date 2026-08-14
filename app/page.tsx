@@ -90,8 +90,8 @@ function curtainWash(opts: { bottom?: boolean; corners?: boolean } = {}) {
 const DISPLAY = "var(--font-playfair)"; // playbill serif, §16b
 const SANS = "var(--font-tight)"; // clean quiet body sans
 
-// Two names, one performer: the marquee is the stage name, the legal name
-// rides alongside it so nobody wonders who they're actually hiring.
+// Two names, one performer: the marquee is his own name, with the stage name
+// riding alongside it so the TikTok handle connects to the person.
 const STAGE_NAME = "Shap Shufflz";
 const NAME = "Jonah Shapiro";
 const PHONE = "(917) 555-0199";
@@ -463,9 +463,9 @@ function StickyBar() {
           className="flex items-baseline gap-2 text-[0.8rem] font-medium tracking-[0.12em] md:text-[0.9rem]"
           style={{ color: TEXT }}
         >
-          {STAGE_NAME}
+          {NAME}
           <span className="hidden text-[0.7rem] tracking-[0.1em] sm:inline" style={{ color: TEXT_MUTED }}>
-            / {NAME}
+            / {STAGE_NAME}
           </span>
         </span>
         <a
@@ -533,13 +533,13 @@ function Hero() {
             className="text-[15vw] uppercase leading-[0.92] tracking-[0.02em] sm:text-[9vw] md:text-[6.5rem]"
             style={{ color: TEXT, fontFamily: DISPLAY }}
           >
-            {STAGE_NAME}
+            {NAME}
           </h1>
           <p
             className="mt-5 text-[0.8rem] uppercase tracking-[0.28em]"
             style={{ color: TEXT_MUTED }}
           >
-            {NAME}
+            {STAGE_NAME}
           </p>
           <p
             className="mx-auto mt-8 max-w-md text-[22px] leading-[1.35] md:text-[28px]"
@@ -912,6 +912,96 @@ function WhatItCosts() {
   );
 }
 
+// ── The Takeaway — branded decks as a booking add-on, not a store. There's no
+// cart, designer, or quantity picker on purpose: the only action is checking
+// a box on the booking form, and the print partner stays off the page
+// entirely (Jonah owns that relationship). No real deck photos exist yet, so
+// the left column is a labeled stylized mock (§10), not a fake product shot.
+const DECK_POINTS = [
+  "Casino-quality stock. Real snap, real weight.",
+  "Custom back design — logo, monogram, or event artwork.",
+  "Full decks, tuck box included. Minimum order 15.",
+];
+function TheTakeaway() {
+  return (
+    <Section id="magician-decks">
+      <style>{`
+        @keyframes deck-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        .deck-mock { animation: deck-float 4s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .deck-mock { animation: none; } }
+      `}</style>
+      <RiseFromDark className="text-center">
+        <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
+          — The Takeaway —
+        </span>
+        <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+          Branded decks. The souvenir nobody throws out.
+        </h2>
+        <p className="mx-auto mt-5 max-w-[640px] text-[15px] leading-[1.7]" style={{ color: TEXT_MUTED }}>
+          Add a custom deck to your booking — your logo, event date, or wedding
+          monogram on the back of every card. Guests take them home. They
+          don&apos;t get tossed like a pen or a keychain. Every deck is
+          casino-quality, printed by a partner I&apos;ve worked with. Ask about it
+          when you book.
+        </p>
+      </RiseFromDark>
+      <div className="mt-14 grid items-center gap-12 md:grid-cols-2 md:gap-16">
+        <RiseFromDark className="flex justify-center">
+          <div
+            className="deck-mock flex flex-col items-center justify-between py-8"
+            style={{
+              width: 240,
+              height: 336,
+              borderRadius: 10,
+              background: BG_ELEVATED,
+              border: `1px solid ${hexToRgba(ACCENT, 0.4)}`,
+              boxShadow: `inset 0 0 40px ${hexToRgba(ACCENT, 0.07)}`,
+            }}
+          >
+            <span aria-hidden style={{ color: hexToRgba(ACCENT, 0.3), fontSize: 80, lineHeight: 1 }}>
+              ✦
+            </span>
+            <div className="text-center" style={{ color: TEXT, fontFamily: DISPLAY }}>
+              <span className="block text-[1.5rem] font-medium tracking-[0.3em]">YOUR</span>
+              <span className="block text-[1.5rem] font-medium tracking-[0.3em]">LOGO</span>
+            </div>
+            <span className="text-[11px] tracking-[0.3em]" style={{ color: TEXT_MUTED }}>
+              HERE
+            </span>
+          </div>
+        </RiseFromDark>
+        <RiseFromDark delay={0.1}>
+          <ul className="space-y-5">
+            {DECK_POINTS.map((point) => (
+              <li key={point} className="flex gap-4 text-[16px] leading-[1.6]" style={{ color: TEXT }}>
+                <span aria-hidden className="shrink-0" style={{ color: ACCENT }}>
+                  ✦
+                </span>
+                {point}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 max-w-md text-[14px] leading-[1.7]" style={{ color: TEXT_MUTED }}>
+            Corporate events use them as branded gifts. Weddings use them as
+            favors. Guests actually keep them. Pricing depends on quantity and
+            finish — usually $3 to $6 per deck at typical event sizes.
+          </p>
+          <a
+            href="#magician-book"
+            className="magician-curtain-btn mt-8 inline-block px-6 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em]"
+            style={{ background: BG_ELEVATED, color: TEXT, border: `1px solid ${ACCENT}` }}
+          >
+            Ask about branded decks →
+          </a>
+        </RiseFromDark>
+      </div>
+    </Section>
+  );
+}
+
 // ── FAQ — the objections that actually block a booking, answered before the
 // form. One open at a time; each question is a real <button> so it's
 // keyboard-operable, and the answer is height-animated via a grid-rows
@@ -1060,6 +1150,10 @@ function About() {
 const EVENT_TYPES = ["Corporate event", "Holiday party", "Private party", "Wedding", "Birthday / milestone", "Not sure yet"];
 function Booking() {
   const [state, setState] = useState<"idle" | "ok" | "err">("idle");
+  // Optional add-on interest from the Takeaway section above. Controlled so
+  // the box can be painted in the site's palette; the real <input> stays in
+  // the DOM (visually hidden) so it keeps keyboard focus and screen readers.
+  const [wantsDecks, setWantsDecks] = useState(false);
   const reduced = useReducedMotion();
   const field: CSSProperties = {
     background: BG_ELEVATED,
@@ -1098,48 +1192,98 @@ function Booking() {
           </div>
         </RiseFromDark>
         <RiseFromDark delay={0.1}>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              // PLACEHOLDER (§10): there is no mail transport wired up yet, so
+              // nothing leaves the browser. The message is assembled here so
+              // that whoever wires the send (Formspree/Resend/a route handler)
+              // has the finished body — including the branded-deck line — and
+              // only has to swap the console call for the POST.
+              const data = new FormData(e.currentTarget);
+              const message = [
+                `Name: ${data.get("name") || "—"}`,
+                `Email: ${data.get("email") || "—"}`,
+                `Event type: ${data.get("event_type") || "—"}`,
+                `Date: ${data.get("date") || "—"}`,
+                `Location / venue: ${data.get("venue") || "—"}`,
+                `Headcount: ${data.get("headcount") || "—"}`,
+                `Notes: ${data.get("notes") || "—"}`,
+                `Interested in branded decks: ${data.get("branded_decks") ? "yes" : "no"}`,
+              ].join("\n");
+              if (process.env.NODE_ENV !== "production") console.info(message);
+              setState("ok");
+            }}
+            className="space-y-4"
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <span className={label} style={{ color: TEXT_MUTED }}>Name *</span>
-                <input className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Your name" />
+                <input name="name" className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Your name" />
               </div>
               <div>
                 <span className={label} style={{ color: TEXT_MUTED }}>Email *</span>
-                <input className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="you@email.com" />
+                <input name="email" type="email" className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="you@email.com" />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <span className={label} style={{ color: TEXT_MUTED }}>Event type</span>
-                <select className="w-full px-3.5 py-3 text-[15px]" style={field} defaultValue="">
+                <select name="event_type" className="w-full px-3.5 py-3 text-[15px]" style={field} defaultValue="">
                   <option value="" disabled>Select…</option>
                   {EVENT_TYPES.map((o) => <option key={o}>{o}</option>)}
                 </select>
               </div>
               <div>
                 <span className={label} style={{ color: TEXT_MUTED }}>Date</span>
-                <input type="date" className="w-full px-3.5 py-3 text-[15px]" style={field} />
+                <input name="date" type="date" className="w-full px-3.5 py-3 text-[15px]" style={field} />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <span className={label} style={{ color: TEXT_MUTED }}>Location / venue</span>
-                <input className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Where's the show?" />
+                <input name="venue" className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Where's the show?" />
               </div>
               <div>
                 <span className={label} style={{ color: TEXT_MUTED }}>Headcount</span>
-                <input type="number" min={1} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="~60" />
+                <input name="headcount" type="number" min={1} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="~60" />
               </div>
             </div>
             <div>
               <span className={label} style={{ color: TEXT_MUTED }}>Anything else?</span>
-              <textarea rows={4} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Cocktail hour, sit-down dinner, how many guests — whatever you've got." />
+              <textarea name="notes" rows={4} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Cocktail hour, sit-down dinner, how many guests — whatever you've got." />
             </div>
+            <label className="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                name="branded_decks"
+                checked={wantsDecks}
+                onChange={(e) => setWantsDecks(e.target.checked)}
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden
+                className="flex h-[18px] w-[18px] shrink-0 items-center justify-center peer-focus-visible:outline peer-focus-visible:outline-1"
+                style={{
+                  background: wantsDecks ? ACCENT : BG_ELEVATED,
+                  border: `1px solid ${wantsDecks ? ACCENT : BORDER}`,
+                  borderRadius: 3,
+                  color: TEXT,
+                  fontSize: 12,
+                  lineHeight: 1,
+                  outlineColor: ACCENT,
+                  transition: "background-color 180ms ease-out, border-color 180ms ease-out",
+                }}
+              >
+                {wantsDecks ? "✓" : ""}
+              </span>
+              <span className="text-[15px]" style={{ color: TEXT }}>
+                I&apos;m interested in branded decks for this event
+              </span>
+            </label>
             <div className="flex flex-wrap items-center gap-4">
               <button
-                type="button"
-                onClick={() => setState("ok")}
+                type="submit"
                 className="magician-curtain-btn px-6 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em]"
                 style={{ background: BG_ELEVATED, color: TEXT, border: `1px solid ${ACCENT}` }}
               >
@@ -1232,10 +1376,10 @@ function MagicianFooter() {
     <footer className="w-full" style={{ background: BG_ELEVATED, borderTop: `1px solid ${BORDER}` }}>
       <div className={`${wrap} py-14 text-center`}>
         <span className="text-[22px] uppercase tracking-[0.04em]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-          {STAGE_NAME}
+          {NAME}
         </span>
         <p className="mt-1 text-[11px] uppercase tracking-[0.24em]" style={{ color: TEXT_MUTED }}>
-          {NAME}
+          {STAGE_NAME}
         </p>
         <p className="mx-auto mt-3 max-w-sm text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED, fontFamily: DISPLAY, fontStyle: "italic" }}>
           Close enough to see it. Still won&apos;t believe it.
@@ -1472,7 +1616,31 @@ function MagicianSite() {
             background-color: ${hexToRgba(ACCENT, 0.15)} !important;
             color: ${TEXT} !important;
           }
+          /* Phones render this palette darker than a desktop panel does —
+             small screens are dimmer to begin with and most of them auto-dim
+             further. Rather than fork the palette (which would drift the two
+             versions apart), one very soft warm veil lifts everything on the
+             page by the same few percent: near-black backgrounds visibly come
+             up, parchment text and gold barely move, so every contrast
+             relationship inside the palette is preserved. Sits above the
+             content and the sticky bar so the lift is uniform, below the
+             curtain reveal, and never takes a tap. The body background stays
+             #0a0505 on purpose — the veil is fixed to the viewport, so it
+             tints the overscroll area to the exact same value and no band
+             appears at the edges. */
+          .magician-mobile-lift { display: none; }
+          @media (max-width: 767px) {
+            .magician-mobile-lift {
+              display: block;
+              position: fixed;
+              inset: 0;
+              z-index: 150;
+              pointer-events: none;
+              background: rgba(255, 243, 224, 0.045);
+            }
+          }
         `}</style>
+        <div aria-hidden className="magician-mobile-lift" />
         {/* the drifting-card layer spans the whole page, positioned by % of its
             total height — mounted once, absolute, behind section content */}
         <DriftingCards />
@@ -1484,6 +1652,7 @@ function MagicianSite() {
           <TheExperience />
           <TrickOfTheDay />
           <WhatItCosts />
+          <TheTakeaway />
           <Faq />
           <About />
           <Booking />
