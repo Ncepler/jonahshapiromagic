@@ -6,6 +6,14 @@ html,
 body {
   margin: 0;
   padding: 0;
+  /* The page is a single vertical column — there is nothing to reach by
+     scrolling sideways. Without these, a phone can still pan and rubber-band
+     horizontally (decorative layers paint past the viewport edge, and touch
+     scrolling picks up any diagonal in the swipe), which reads as the page
+     sliding side to side while you scroll. overflow-x pins the width;
+     overscroll-behavior-x kills the horizontal bounce that survives it. */
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 html {

@@ -278,6 +278,7 @@ function DriftCard({
   depth,
   mx,
   desktopOnly,
+  steady,
 }: {
   top: string;
   side: "left" | "right";
@@ -287,6 +288,7 @@ function DriftCard({
   depth: number;
   mx: MotionValue<number>;
   desktopOnly: boolean;
+  steady: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -307,7 +309,11 @@ function DriftCard({
       ref={ref}
       aria-hidden
       className={`absolute h-16 w-11 ${desktopOnly ? "hidden md:block" : "block"}`}
-      style={{ top, ...posStyle, y, rotate, opacity: 0.68 }}
+      // On touch the scroll-linked rotation is the only thing on the page that
+      // moves sideways, and a phone viewport is narrow enough that a card
+      // swinging ~13° at the edge reads as the whole page wobbling. The card
+      // keeps its fixed tilt and its vertical drift; only the swing is off.
+      style={{ top, ...posStyle, y, rotate: steady ? tilt : rotate, opacity: 0.68 }}
     >
       <CardGlyph suit={suit} />
     </motion.div>
@@ -349,7 +355,7 @@ function DriftingCards() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       {DRIFT_CARDS.map((c, i) => (
-        <DriftCard key={i} {...c} mx={mx} />
+        <DriftCard key={i} {...c} mx={mx} steady={!canHover} />
       ))}
     </div>
   );
