@@ -582,9 +582,16 @@ function Hero() {
   );
 }
 
-// ── Recently Performed At — a proof strip, not a full section: half the
-// usual vertical rhythm, plain BG, gold ◆ separators. Same visual family as
-// the venue row that used to live further down the page. ────────────────────
+// ── Where I've Worked — a proof strip, not a full section: half the usual
+// vertical rhythm, plain BG. Laid out as a small grid rather than a
+// ◆-separated line, because the scrolling PhraseBand directly below is
+// already a row of text split by gold ◆ — back to back the two read as the
+// same element repeated and neither one lands. Grid spacing does the
+// separating here; no ornaments.
+//
+// TODO: swap these for real venue or client names once they exist —
+// "The Glasshouse, Manhattan" is proof, "Manhattan Private Parties" is a
+// category, and specific names convert far better than generic ones.
 const PERFORMED_AT = [
   "Manhattan Private Parties",
   "NYC Corporate & Holiday Parties",
@@ -598,22 +605,19 @@ function RecentlyPerformedAt() {
       <div className={`${wrap} text-center`}>
         <RiseFromDark>
           <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
-            — Recently Performed At —
+            — Where I&apos;ve Worked —
           </span>
-          <div className="mx-auto mt-7 flex max-w-3xl flex-wrap items-center justify-center gap-x-3 gap-y-2">
-            {PERFORMED_AT.map((v, i) => (
-              <span key={v} className="flex items-center gap-3">
-                <span className="text-[13px] md:text-[17px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-                  {v}
-                </span>
-                {i < PERFORMED_AT.length - 1 && (
-                  <span aria-hidden style={{ color: ACCENT, opacity: 0.5 }}>
-                    ◆
-                  </span>
-                )}
-              </span>
+          <ul className="mx-auto mt-8 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-3">
+            {PERFORMED_AT.map((v) => (
+              <li
+                key={v}
+                className="text-[0.9rem] leading-[1.45] tracking-[0.05em]"
+                style={{ color: TEXT }}
+              >
+                {v}
+              </li>
             ))}
-          </div>
+          </ul>
         </RiseFromDark>
       </div>
     </section>
