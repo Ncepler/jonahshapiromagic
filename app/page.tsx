@@ -843,17 +843,17 @@ const PACKAGES = [
   {
     name: "Close-Up Set",
     price: "From $150",
-    desc: "A short close-up set — I roam the room with cards, doing tricks table-to-table.",
+    desc: "A short set. I walk the room with a deck of cards, doing tricks table to table.",
   },
   {
     name: "Full Close-Up",
     price: "From $300",
-    desc: "60 to 90 minutes of close-up magic, covering the whole room, group by group.",
+    desc: "A 60 to 90 minute window. Enough time to cover the whole room, group by group.",
   },
   {
     name: "Custom Booking",
     price: "Let's talk",
-    desc: "Bigger events, longer sets, corporate themes, or something custom to the room.",
+    desc: "Bigger events, longer sets, a corporate theme, or something built around your room.",
   },
 ];
 function WhatItCosts() {
@@ -868,11 +868,12 @@ function WhatItCosts() {
           — What It Costs —
         </span>
         <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-          Clear rates, stated up front.
+          Straight numbers. No mystery here.
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
-          Every event is different, but this is where it starts. A firm quote
-          follows once we&apos;ve talked through your date, venue, and guest count.
+          Bookings start at $150. Where it lands depends on how long you want me
+          there, how big the room is, and how far the venue is from me. Tell me
+          what you&apos;re planning and I&apos;ll send you a real number.
         </p>
       </RiseFromDark>
       <div className="mt-14 grid gap-6 md:grid-cols-3">
