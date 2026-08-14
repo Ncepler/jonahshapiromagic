@@ -15,7 +15,6 @@
 // Spec: .claude/skills/local-service-design-system/SKILL.md §16
 
 import {
-  AnimatePresence,
   motion,
   useMotionValue,
   useReducedMotion,
@@ -1180,24 +1179,98 @@ function About() {
   );
 }
 
-// ── Booking — the conversion point (§16e.8). Local component state. The second
-// (and last) curtain-wash section — bookends the hero at the bottom of the
-// page, subtler than the hero's. ─────────────────────────────────────────
+// ── Booking — the conversion point (§16e.8). Local component state, posting
+// to app/api/book/route.ts. The second (and last) curtain-wash section —
+// bookends the hero at the bottom of the page, subtler than the hero's. ────
 const EVENT_TYPES = ["Corporate event", "Holiday party", "Private party", "Wedding", "Birthday / milestone", "Not sure yet"];
+
+// Validation runs here rather than through the browser's own `required` /
+// `type=email` checks: those surface as a native tooltip bubble, which is
+// system-chrome blue-and-white in the middle of a dark theater and reads as
+// a browser error rather than part of the page. The form carries `noValidate`
+// so the native UI never fires, and the same rules run again in the route.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+type FieldErrors = { name?: string; email?: string };
+function validateBooking(data: FormData): FieldErrors {
+  const errors: FieldErrors = {};
+  const name = String(data.get("name") ?? "").trim();
+  const email = String(data.get("email") ?? "").trim();
+  if (!name) errors.name = "I need a name to put on the booking.";
+  if (!email) errors.email = "I need an email to reply to.";
+  else if (!EMAIL_RE.test(email)) errors.email = "That doesn't look like an email address.";
+  return errors;
+}
+
 function Booking() {
-  const [state, setState] = useState<"idle" | "ok" | "err">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "ok" | "err">("idle");
+  const [errors, setErrors] = useState<FieldErrors>({});
   // Optional add-on interest from the Takeaway section above. Controlled so
   // the box can be painted in the site's palette; the real <input> stays in
   // the DOM (visually hidden) so it keeps keyboard focus and screen readers.
   const [wantsDecks, setWantsDecks] = useState(false);
+  // On success the whole form is replaced, so the block that replaces it
+  // inherits the height the form had — otherwise the page collapses by
+  // several hundred pixels underneath whoever just submitted it.
+  const [formHeight, setFormHeight] = useState<number | null>(null);
+  const formWrapRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
+  const sending = state === "sending";
   const field: CSSProperties = {
     background: BG_ELEVATED,
     border: `1px solid ${BORDER}`,
     color: TEXT,
     borderRadius: 4,
   };
-  const label = "mb-1.5 block text-[13px] font-semibold";
+  const label = "mb-1.5 block text-[14px] font-semibold";
+  // Clearing a field's message as soon as it's edited means the visitor
+  // never reads a complaint about text they've already fixed.
+  const clearError = (key: keyof FieldErrors) =>
+    setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
+  const errorNote = (key: keyof FieldErrors) =>
+    errors[key] ? (
+      <p id={`book-${key}-error`} className="mt-1.5 text-[14px] leading-[1.45]" style={{ color: TEXT_MUTED }}>
+        {errors[key]}
+      </p>
+    ) : null;
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
+    const found = validateBooking(data);
+    setErrors(found);
+    if (found.name || found.email) {
+      const firstBad = form.elements.namedItem(found.name ? "name" : "email");
+      if (firstBad instanceof HTMLElement) firstBad.focus();
+      return;
+    }
+
+    setFormHeight(formWrapRef.current?.getBoundingClientRect().height ?? null);
+    setState("sending");
+    try {
+      const res = await fetch("/api/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: String(data.get("name") ?? ""),
+          email: String(data.get("email") ?? ""),
+          event_type: String(data.get("event_type") ?? ""),
+          date: String(data.get("date") ?? ""),
+          venue: String(data.get("venue") ?? ""),
+          headcount: String(data.get("headcount") ?? ""),
+          notes: String(data.get("notes") ?? ""),
+          branded_decks: wantsDecks,
+        }),
+      });
+      // On failure the form stays exactly as it was, fields and all — nobody
+      // should have to retype an event brief because a request timed out.
+      setState(res.ok ? "ok" : "err");
+    } catch {
+      setState("err");
+    }
+  };
+
   return (
     <Section id="magician-book" className="" >
       {/* subtle curtain wash, bookending the hero's — bottom-only, no corners */}
@@ -1228,146 +1301,176 @@ function Booking() {
           </div>
         </RiseFromDark>
         <RiseFromDark delay={0.1}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              // PLACEHOLDER (§10): there is no mail transport wired up yet, so
-              // nothing leaves the browser. The message is assembled here so
-              // that whoever wires the send (Formspree/Resend/a route handler)
-              // has the finished body — including the branded-deck line — and
-              // only has to swap the console call for the POST.
-              const data = new FormData(e.currentTarget);
-              const message = [
-                `Name: ${data.get("name") || "—"}`,
-                `Email: ${data.get("email") || "—"}`,
-                `Event type: ${data.get("event_type") || "—"}`,
-                `Date: ${data.get("date") || "—"}`,
-                `Location / venue: ${data.get("venue") || "—"}`,
-                `Headcount: ${data.get("headcount") || "—"}`,
-                `Notes: ${data.get("notes") || "—"}`,
-                `Interested in branded decks: ${data.get("branded_decks") ? "yes" : "no"}`,
-              ].join("\n");
-              if (process.env.NODE_ENV !== "production") console.info(message);
-              setState("ok");
-            }}
-            className="space-y-4"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <span className={label} style={{ color: TEXT_MUTED }}>Name *</span>
-                <input name="name" className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Your name" />
-              </div>
-              <div>
-                <span className={label} style={{ color: TEXT_MUTED }}>Email *</span>
-                <input name="email" type="email" className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="you@email.com" />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <span className={label} style={{ color: TEXT_MUTED }}>Event type</span>
-                <select name="event_type" className="w-full px-3.5 py-3 text-[15px]" style={field} defaultValue="">
-                  <option value="" disabled>Select…</option>
-                  {EVENT_TYPES.map((o) => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div>
-                <span className={label} style={{ color: TEXT_MUTED }}>Date</span>
-                <input name="date" type="date" className="w-full px-3.5 py-3 text-[15px]" style={field} />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <span className={label} style={{ color: TEXT_MUTED }}>Location / venue</span>
-                <input name="venue" className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Where's the show?" />
-              </div>
-              <div>
-                <span className={label} style={{ color: TEXT_MUTED }}>Headcount</span>
-                <input name="headcount" type="number" min={1} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="~60" />
-              </div>
-            </div>
-            <div>
-              <span className={label} style={{ color: TEXT_MUTED }}>Anything else?</span>
-              <textarea name="notes" rows={4} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Cocktail hour, sit-down dinner, how many guests — whatever you've got." />
-            </div>
-            <label className="flex cursor-pointer items-center gap-3">
-              <input
-                type="checkbox"
-                name="branded_decks"
-                checked={wantsDecks}
-                onChange={(e) => setWantsDecks(e.target.checked)}
-                className="peer sr-only"
-              />
-              <span
-                aria-hidden
-                className="flex h-[18px] w-[18px] shrink-0 items-center justify-center peer-focus-visible:outline peer-focus-visible:outline-1"
-                style={{
-                  background: wantsDecks ? ACCENT : BG_ELEVATED,
-                  border: `1px solid ${wantsDecks ? ACCENT : BORDER}`,
-                  borderRadius: 3,
-                  color: TEXT,
-                  fontSize: 12,
-                  lineHeight: 1,
-                  outlineColor: ACCENT,
-                  transition: "background-color 180ms ease-out, border-color 180ms ease-out",
-                }}
+          <div ref={formWrapRef}>
+            {state === "ok" ? (
+              <motion.div
+                role="status"
+                initial={reduced ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                className="flex flex-col items-center justify-center px-6 text-center"
+                // holds the space the form was occupying a moment ago
+                style={{ minHeight: formHeight ?? undefined }}
               >
-                {wantsDecks ? "✓" : ""}
-              </span>
-              <span className="text-[15px]" style={{ color: TEXT }}>
-                I&apos;m interested in branded decks for this event
-              </span>
-            </label>
-            <div className="flex flex-wrap items-center gap-4">
-              <button
-                type="submit"
-                className="magician-curtain-btn px-6 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em]"
-                style={{ background: BG_ELEVATED, color: TEXT, border: `1px solid ${ACCENT}` }}
-              >
-                Send it
-              </button>
-              {process.env.NODE_ENV !== "production" && (
-                <button
-                  type="button"
-                  onClick={() => setState("err")}
-                  className="text-[13px]"
-                  style={{ color: TEXT_MUTED }}
-                >
-                  (preview error state)
-                </button>
-              )}
-            </div>
-            <p className="text-center text-[13px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
-              I read every message. You&apos;ll hear back within 24 hours — if your
-              date&apos;s open, I&apos;ll send a real quote; if not, I&apos;ll tell you straight.
-            </p>
-            <AnimatePresence mode="wait">
-              {state === "ok" && (
-                <motion.p
-                  initial={reduced ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-[15px]"
-                  style={{ color: ACCENT }}
-                >
-                  Got it — I&apos;ll get back to you within a day.
-                </motion.p>
-              )}
-              {state === "err" && (
-                <motion.p
-                  initial={reduced ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-[15px]"
-                  style={{ color: TEXT }}
-                >
-                  That didn&apos;t send. Call or text {site.phone}, or{" "}
-                  <button type="button" onClick={() => setState("idle")} className="underline" style={{ color: ACCENT }}>
-                    try again
-                  </button>.
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </form>
+                <span aria-hidden style={{ color: ACCENT, fontSize: 30 }}>
+                  ✦
+                </span>
+                <p className="mt-5 max-w-xs text-[17px] leading-[1.6]" style={{ color: TEXT }}>
+                  Got it. I&apos;ll be in touch within 24 hours.
+                </p>
+              </motion.div>
+            ) : (
+              <form onSubmit={onSubmit} noValidate className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="book-name" className={label} style={{ color: TEXT_MUTED }}>Name *</label>
+                    <input
+                      id="book-name"
+                      name="name"
+                      autoComplete="name"
+                      aria-invalid={errors.name ? true : undefined}
+                      aria-describedby={errors.name ? "book-name-error" : undefined}
+                      onChange={() => clearError("name")}
+                      className="w-full px-3.5 py-3 text-[15px]"
+                      style={field}
+                      placeholder="Your name"
+                    />
+                    {errorNote("name")}
+                  </div>
+                  <div>
+                    <label htmlFor="book-email" className={label} style={{ color: TEXT_MUTED }}>Email *</label>
+                    <input
+                      id="book-email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      aria-invalid={errors.email ? true : undefined}
+                      aria-describedby={errors.email ? "book-email-error" : undefined}
+                      onChange={() => clearError("email")}
+                      className="w-full px-3.5 py-3 text-[15px]"
+                      style={field}
+                      placeholder="you@email.com"
+                    />
+                    {errorNote("email")}
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="book-event-type" className={label} style={{ color: TEXT_MUTED }}>Event type</label>
+                    <select id="book-event-type" name="event_type" className="w-full px-3.5 py-3 text-[15px]" style={field} defaultValue="">
+                      <option value="" disabled>Select…</option>
+                      {EVENT_TYPES.map((o) => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="book-date" className={label} style={{ color: TEXT_MUTED }}>Date</label>
+                    <input id="book-date" name="date" type="date" className="w-full px-3.5 py-3 text-[15px]" style={field} />
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="book-venue" className={label} style={{ color: TEXT_MUTED }}>Location / venue</label>
+                    <input id="book-venue" name="venue" className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Where's the show?" />
+                  </div>
+                  <div>
+                    <label htmlFor="book-headcount" className={label} style={{ color: TEXT_MUTED }}>Headcount</label>
+                    <input id="book-headcount" name="headcount" type="number" min={1} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="~60" />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="book-notes" className={label} style={{ color: TEXT_MUTED }}>Anything else?</label>
+                  <textarea id="book-notes" name="notes" rows={4} className="w-full px-3.5 py-3 text-[15px]" style={field} placeholder="Cocktail hour, sit-down dinner, how many guests — whatever you've got." />
+                </div>
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-3">
+                  <input
+                    type="checkbox"
+                    name="branded_decks"
+                    checked={wantsDecks}
+                    onChange={(e) => setWantsDecks(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <span
+                    aria-hidden
+                    className="flex h-[18px] w-[18px] shrink-0 items-center justify-center peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2"
+                    style={{
+                      background: wantsDecks ? ACCENT : BG_ELEVATED,
+                      border: `1px solid ${wantsDecks ? ACCENT : BORDER}`,
+                      borderRadius: 3,
+                      color: TEXT,
+                      fontSize: 12,
+                      lineHeight: 1,
+                      outlineColor: ACCENT,
+                      transition: "background-color 180ms ease-out, border-color 180ms ease-out",
+                    }}
+                  >
+                    {wantsDecks ? "✓" : ""}
+                  </span>
+                  <span className="text-[15px]" style={{ color: TEXT }}>
+                    I&apos;m interested in branded decks for this event
+                  </span>
+                </label>
+                <div className="flex flex-wrap items-center gap-4">
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="magician-curtain-btn px-6 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em]"
+                    style={{
+                      background: BG_ELEVATED,
+                      color: TEXT,
+                      border: `1px solid ${ACCENT}`,
+                      opacity: sending ? 0.65 : 1,
+                    }}
+                  >
+                    {/* Both labels sit in the same grid cell, so the button is
+                        always as wide as the longer of the two and can't
+                        resize the moment it's pressed. */}
+                    <span className="grid justify-items-center">
+                      {["Send it", "Sending…"].map((text) => {
+                        const active = sending === (text === "Sending…");
+                        return (
+                          <span
+                            key={text}
+                            aria-hidden={!active}
+                            className={`col-start-1 row-start-1 ${active ? "" : "invisible"}`}
+                          >
+                            {text}
+                          </span>
+                        );
+                      })}
+                    </span>
+                  </button>
+                  {process.env.NODE_ENV !== "production" && (
+                    <button
+                      type="button"
+                      onClick={() => setState("err")}
+                      className="text-[13px]"
+                      style={{ color: TEXT_MUTED }}
+                    >
+                      (preview error state)
+                    </button>
+                  )}
+                </div>
+                {state === "err" && (
+                  <motion.p
+                    role="alert"
+                    initial={reduced ? false : { opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[14px] leading-[1.6]"
+                    style={{ color: TEXT_MUTED }}
+                  >
+                    Something went wrong. Try again, or just text me at{" "}
+                    <a href={site.phoneHref} className="underline underline-offset-2" style={{ color: TEXT_MUTED }}>
+                      {site.phone}
+                    </a>
+                  </motion.p>
+                )}
+                <p className="text-center text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+                  I read every message. You&apos;ll hear back within 24 hours — if your
+                  date&apos;s open, I&apos;ll send a real quote; if not, I&apos;ll tell you straight.
+                </p>
+              </form>
+            )}
+          </div>
         </RiseFromDark>
       </div>
     </Section>
@@ -1641,7 +1744,7 @@ function MagicianSite() {
             button's own inline `style`, which a plain stylesheet rule can't
             outrank on specificity alone. */}
         <style>{`
-          .magician-curtain-btn:hover {
+          .magician-curtain-btn:not(:disabled):hover {
             background-color: ${hexToRgba(ACCENT, 0.15)} !important;
             color: ${TEXT} !important;
           }
