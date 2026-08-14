@@ -918,27 +918,27 @@ function WhatItCosts() {
 const FAQS = [
   {
     q: "How much does it cost?",
-    a: "Bookings start at $150. Final price depends on the length of the set, the size of the room, and how far the venue is. Tell me the details and I'll send a real number — no games.",
+    a: "Bookings start at $150. The final price comes down to how long you want me there, how big the room is, and how far the venue is from me. Tell me what you're planning and I'll send you a real number.",
   },
   {
     q: "What does close-up magic actually look like at an event?",
-    a: "Close-up is table-to-table — I walk the room with a deck of cards, stopping at each group and doing tricks right in your hands. Everyone gets their own moment. Stage is the opposite: one room, one show, everyone watching the same reveal at once.",
+    a: "I walk the room with a deck of cards and stop at each group, doing tricks right in your hands. Everyone gets their own moment. A stage show is the opposite. One room, one show, everyone watching the same reveal at once.",
   },
   {
     q: "How far in advance should I book?",
-    a: "As soon as you know the date. I book on a first-come basis, and weekends fill up fast. If your event's tomorrow, still ask — sometimes it works.",
+    a: "As soon as you know the date, honestly. I book first-come, and weekends fill up fast. That said, if your event's tomorrow, still ask. Sometimes it works out.",
   },
   {
     q: "What areas do you cover?",
-    a: "The tri-state area — New York, New Jersey, Connecticut. Anywhere farther, ask and I'll see what works.",
+    a: "The tri-state area, so New York, New Jersey, and Connecticut. If you're farther out, just ask and I'll see what I can do.",
   },
   {
     q: "Can you tailor it to our company or occasion?",
-    a: "Yes. Tell me what you want the show to land on — a brand, a person, a moment — and I'll build toward it.",
+    a: "Yeah, definitely. Tell me what you want the show to land on, whether that's a brand, a person, or a moment, and I'll build toward it.",
   },
   {
     q: "What do you need from the venue?",
-    a: "A 60 to 90 minute window, an audience, and a room with decent energy. I bring everything else — cards, props, all of it. Don't buy or set up anything for me.",
+    a: "A 60 to 90 minute window, an audience, and a room with decent energy. I bring everything else. Cards, props, all of it. Don't buy or set up anything for me.",
   },
 ];
 function Faq() {
