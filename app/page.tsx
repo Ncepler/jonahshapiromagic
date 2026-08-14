@@ -1,6 +1,7 @@
 "use client";
 
-// Jonah Shapiro, a New York City close-up magician & mentalist, in the THEATRICAL
+// Jonah Shapiro — performing as Shap Shufflz — a New York City close-up
+// magician & mentalist, in the THEATRICAL
 // EXCEPTION system (SKILL §16). This is the one page that deliberately
 // throws out the local-service DNA everywhere else in components/examples/*:
 // no editorial restraint, no hairline-and-eyebrow spine, no "zero decorative
@@ -89,6 +90,9 @@ function curtainWash(opts: { bottom?: boolean; corners?: boolean } = {}) {
 const DISPLAY = "var(--font-playfair)"; // playbill serif, §16b
 const SANS = "var(--font-tight)"; // clean quiet body sans
 
+// Two names, one performer: the marquee is the stage name, the legal name
+// rides alongside it so nobody wonders who they're actually hiring.
+const STAGE_NAME = "Shap Shufflz";
 const NAME = "Jonah Shapiro";
 const PHONE = "(917) 555-0199";
 const EMAIL = "hello@jonahshapiro.com";
@@ -456,10 +460,13 @@ function StickyBar() {
     >
       <div className={`${wrap} flex h-full items-center justify-between`}>
         <span
-          className="text-[0.8rem] font-medium tracking-[0.12em] md:text-[0.9rem]"
+          className="flex items-baseline gap-2 text-[0.8rem] font-medium tracking-[0.12em] md:text-[0.9rem]"
           style={{ color: TEXT }}
         >
-          {NAME}
+          {STAGE_NAME}
+          <span className="hidden text-[0.7rem] tracking-[0.1em] sm:inline" style={{ color: TEXT_MUTED }}>
+            / {NAME}
+          </span>
         </span>
         <a
           href="#magician-book"
@@ -526,8 +533,14 @@ function Hero() {
             className="text-[15vw] uppercase leading-[0.92] tracking-[0.02em] sm:text-[9vw] md:text-[6.5rem]"
             style={{ color: TEXT, fontFamily: DISPLAY }}
           >
-            {NAME}
+            {STAGE_NAME}
           </h1>
+          <p
+            className="mt-5 text-[0.8rem] uppercase tracking-[0.28em]"
+            style={{ color: TEXT_MUTED }}
+          >
+            {NAME}
+          </p>
           <p
             className="mx-auto mt-8 max-w-md text-[22px] leading-[1.35] md:text-[28px]"
             style={{ color: TEXT, fontFamily: DISPLAY, fontStyle: "italic" }}
@@ -781,7 +794,7 @@ function TrickOfTheDay() {
             const video = TIKTOK_VIDEO_URLS[Math.floor(Math.random() * TIKTOK_VIDEO_URLS.length)];
             window.open(video, "_blank", "noopener,noreferrer");
           }}
-          aria-label="Watch a random trick from Jonah Shapiro's TikTok — @shap_shufflz_magic"
+          aria-label="Watch a random trick from Shap Shufflz on TikTok — @shap_shufflz_magic"
           className="trick-card relative mx-auto flex w-full max-w-[380px] flex-col items-center justify-center gap-4 overflow-hidden px-6 py-10"
           style={{ background: BG_ELEVATED, border: `1px solid ${hexToRgba(ACCENT, 0.3)}`, borderRadius: 4, aspectRatio: "9 / 16" }}
         >
@@ -1001,7 +1014,7 @@ function About() {
           >
             <Image
               src="/JonahPortrait.jpg"
-              alt="Jonah Shapiro, portrait"
+              alt="Jonah Shapiro, who performs as Shap Shufflz — portrait"
               fill
               sizes="(min-width: 768px) 40vw, 90vw"
               className="object-cover"
@@ -1018,6 +1031,11 @@ function About() {
             <span style={{ color: TEXT_MUTED }}>A decision, made in front of you.</span>
           </h2>
           <p className="mt-6 max-w-md text-[16px] leading-[1.7]" style={{ color: TEXT }}>
+            His name is Jonah Shapiro. On the booking, on TikTok, and in your
+            group chat afterward, he&apos;s Shap Shufflz — same person, better
+            name for what happens once the deck comes out.
+          </p>
+          <p className="mt-4 max-w-md text-[16px] leading-[1.7]" style={{ color: TEXT }}>
             Jonah started with a deck of cards and an audience of one — himself,
             in a mirror, for longer than he&apos;d like to admit. These days it&apos;s
             New York parties, corporate rooms, and the occasional wedding, but
@@ -1212,8 +1230,11 @@ function MagicianFooter() {
     <footer className="w-full" style={{ background: BG_ELEVATED, borderTop: `1px solid ${BORDER}` }}>
       <div className={`${wrap} py-14 text-center`}>
         <span className="text-[22px] uppercase tracking-[0.04em]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-          {NAME}
+          {STAGE_NAME}
         </span>
+        <p className="mt-1 text-[11px] uppercase tracking-[0.24em]" style={{ color: TEXT_MUTED }}>
+          {NAME}
+        </p>
         <p className="mx-auto mt-3 max-w-sm text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED, fontFamily: DISPLAY, fontStyle: "italic" }}>
           Close enough to see it. Still won&apos;t believe it.
         </p>

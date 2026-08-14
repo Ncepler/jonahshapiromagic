@@ -1,9 +1,9 @@
-# Jonah Shapiro — magician site
+# Shap Shufflz — magician site
 
 Next.js (App Router) + TypeScript + Tailwind CSS + [motion](https://motion.dev).
 
-A one-page site for Jonah Shapiro, a New York City close-up magician &
-mentalist.
+A one-page site for Jonah Shapiro, who performs as Shap Shufflz — a New York
+City close-up magician & mentalist.
 
 ## Getting started
 

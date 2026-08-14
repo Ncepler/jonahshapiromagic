@@ -17,9 +17,9 @@ const interTight = Inter_Tight({
 });
 
 export const metadata: Metadata = {
-  title: "Jonah Shapiro — Magician & Mentalist",
+  title: "Shap Shufflz — Jonah Shapiro, Magician & Mentalist",
   description:
-    "New York City close-up magic and mentalism for corporate events, holiday parties, weddings, and private parties.",
+    "Jonah Shapiro, performing as Shap Shufflz — New York City close-up magic and mentalism for corporate events, holiday parties, weddings, and private parties.",
 };
 
 export default function RootLayout({
