@@ -828,19 +828,19 @@ function TrickOfTheDay() {
 // not spectacle. ────────────────────────────────────────────────────────────
 const PACKAGES = [
   {
-    name: "One Hour",
-    price: "From $500",
-    desc: "An hour of close-up magic, moving group to group through your guests.",
+    name: "Close-Up Set",
+    price: "From $150",
+    desc: "A short close-up set — I roam the room with cards, doing tricks table-to-table.",
   },
   {
-    name: "Two Hours",
-    price: "From $900",
-    desc: "Cocktails through dinner — enough time that everyone in the room gets seen.",
+    name: "Full Close-Up",
+    price: "From $300",
+    desc: "60 to 90 minutes of close-up magic, covering the whole room, group by group.",
   },
   {
-    name: "Full Event",
-    price: "From $1,500",
-    desc: "Three hours across the whole evening, from arrivals to the last table.",
+    name: "Custom Booking",
+    price: "Let's talk",
+    desc: "Bigger events, longer sets, corporate themes, or something custom to the room.",
   },
 ];
 function WhatItCosts() {
@@ -891,7 +891,7 @@ function WhatItCosts() {
       </div>
       <RiseFromDark delay={0.24}>
         <p className="mt-10 text-[13px]" style={{ color: TEXT_MUTED }}>
-          Weddings, extended coverage, and travel outside New York City are quoted separately.
+          Weddings, corporate events, and travel outside the tri-state area are quoted separately.
         </p>
       </RiseFromDark>
     </Section>
@@ -905,27 +905,27 @@ function WhatItCosts() {
 const FAQS = [
   {
     q: "How much does it cost?",
-    a: "One hour starts at $500, two hours at $900, and full-event coverage at $1,500. Weddings, extended coverage, and travel outside New York City are quoted separately. You'll get a firm number once we've talked through your date, venue, and guest count — no vague ranges.",
+    a: "Bookings start at $150. Final price depends on the length of the set, the size of the room, and how far the venue is. Tell me the details and I'll send a real number — no games.",
   },
   {
     q: "What does close-up magic actually look like at an event?",
-    a: "I come to your guests rather than the other way around — no stage, no setup, no interruption to the evening. I work group to group with cards, coins, and mentalism happening in your guests' own hands, inches from their eyes. It fits naturally into cocktails, dinner, and the stretches where people are already mingling.",
+    a: "Close-up is table-to-table — I walk the room with a deck of cards, stopping at each group and doing tricks right in your hands. Everyone gets their own moment. Stage is the opposite: one room, one show, everyone watching the same reveal at once.",
   },
   {
     q: "How far in advance should I book?",
-    a: "Weekend dates in November, December, May, and June tend to fill 3–6 months out. Off-peak, 4–8 weeks is usually enough. If your date is inside two weeks, it's still worth asking — availability opens up more often than you'd expect.",
+    a: "As soon as you know the date. I book on a first-come basis, and weekends fill up fast. If your event's tomorrow, still ask — sometimes it works.",
   },
   {
     q: "What areas do you cover?",
-    a: "New York City is home base — all five boroughs, no travel fee. For events outside the city, travel is quoted with the booking.",
+    a: "The tri-state area — New York, New Jersey, Connecticut. Anywhere farther, ask and I'll see what works.",
   },
   {
     q: "Can you tailor it to our company or occasion?",
-    a: "Yes. Corporate events can include branded moments, a product tie-in, or a reveal built around someone specific — that takes about a week of prep. Private events can be built around the guest of honor. Tell me the moment you want to land and I'll build toward it.",
+    a: "Yes. Tell me what you want the show to land on — a brand, a person, a moment — and I'll build toward it.",
   },
   {
     q: "What do you need from the venue?",
-    a: "Nothing. No stage, no sound system, no lighting, no floor space set aside — I bring everything I need and work in the room exactly as it is. That's the advantage of close-up: it slots into your event without changing a thing about it.",
+    a: "A 60 to 90 minute window, an audience, and a room with decent energy. I bring everything else — cards, props, all of it. Don't buy or set up anything for me.",
   },
 ];
 function Faq() {
