@@ -3,7 +3,7 @@
 Next.js (App Router) + TypeScript + Tailwind CSS + [motion](https://motion.dev).
 
 A one-page site for Jonah Shapiro, who performs as Shap Shufflz — a New York
-City close-up magician & mentalist.
+City close-up magician & mentalist working across the tri-state area.
 
 ## Getting started
 

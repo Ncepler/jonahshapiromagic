@@ -1,7 +1,7 @@
 "use client";
 
 // Jonah Shapiro — performing as Shap Shufflz — a New York City close-up
-// magician & mentalist, in the THEATRICAL
+// magician & mentalist working across the tri-state area, in the THEATRICAL
 // EXCEPTION system (SKILL §16). This is the one page that deliberately
 // throws out the local-service DNA everywhere else in components/examples/*:
 // no editorial restraint, no hairline-and-eyebrow spine, no "zero decorative
@@ -96,7 +96,7 @@ const STAGE_NAME = "Shap Shufflz";
 const NAME = "Jonah Shapiro";
 const PHONE = "(917) 555-0199";
 const EMAIL = "hello@jonahshapiro.com";
-const AREA = "Based in New York City — available across all five boroughs";
+const AREA = "Based in New York City — available across the tri-state area";
 
 const wrap = "mx-auto w-full max-w-[1160px] px-6 md:px-16";
 
@@ -553,7 +553,7 @@ function Hero() {
             className="mt-8 text-[0.75rem] uppercase tracking-[0.15em]"
             style={{ color: TEXT_MUTED }}
           >
-            New York City · All Five Boroughs
+            New York City · Tri-State Area
           </p>
           <a
             href="#magician-book"
@@ -582,7 +582,7 @@ const PERFORMED_AT = [
   "NYC Corporate & Holiday Parties",
   "Brooklyn Engagement Parties",
   "Birthday & Milestone Celebrations",
-  "Weddings Across the Five Boroughs",
+  "Weddings & Receptions",
 ];
 function RecentlyPerformedAt() {
   return (
@@ -939,7 +939,7 @@ const FAQS = [
   },
   {
     q: "What do you need from the venue?",
-    a: "A 60 to 90 minute window, an audience, and a room with decent energy. I bring everything else. Cards, props, all of it. Don't buy or set up anything for me.",
+    a: "A window of time, an audience, and a room with decent energy. 60 to 90 minutes for a full set, less for a short one. I bring everything else. Cards, props, all of it. Don't buy or set up anything for me.",
   },
 ];
 function Faq() {
@@ -1039,7 +1039,8 @@ function About() {
           <p className="mt-4 max-w-md text-[16px] leading-[1.7]" style={{ color: TEXT }}>
             Jonah started with a deck of cards and an audience of one — himself,
             in a mirror, for longer than he&apos;d like to admit. These days it&apos;s
-            New York parties, corporate rooms, and the occasional wedding, but
+            parties across the tri-state area, corporate rooms, and the
+            occasional wedding, but
             the method never changes: get close enough that the audience stops
             looking for the seam, then give them a moment they can&apos;t explain.
           </p>
@@ -1084,8 +1085,8 @@ function Booking() {
             Book the show.
           </h2>
           <p className="mt-6 max-w-md text-[16px] leading-[1.6]" style={{ color: TEXT }}>
-            Tell me the date and the room. I&apos;ll tell you what fits — an hour
-            through cocktails, or close-up across the whole evening.
+            Tell me the date and the room. I&apos;ll tell you what fits — a short
+            set through cocktails, or 60 to 90 minutes across the whole room.
           </p>
           <div className="mt-8 space-y-3 text-[15px]">
             {[["Call or text", PHONE], ["Email", EMAIL], ["Based", AREA]].map(([k, v]) => (
@@ -1290,7 +1291,6 @@ function MagicianFooter() {
 // it can't introduce a gap either. ──────────────────────────────────────────
 const CURTAIN_BASE_DELAY_MS = 1000; // the pause before anything moves
 const CURTAIN_MOVE_MS = 1900; // slower, unhurried open
-const CURTAIN_STRIP_COUNT = 7;
 const CURTAIN_TOTAL_MS = CURTAIN_BASE_DELAY_MS + CURTAIN_MOVE_MS;
 const CURTAIN_EASE = "cubic-bezier(0.65, 0, 0.35, 1)"; // symmetric ease-in-out — fluid, not mechanical
 
