@@ -32,6 +32,7 @@ import {
 } from "react";
 import Image from "next/image";
 import { useCanHover } from "@/lib/hooks";
+import { site } from "@/site-config";
 import { MagicianCursor } from "./MagicianCursor";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -94,8 +95,9 @@ const SANS = "var(--font-tight)"; // clean quiet body sans
 // riding alongside it so the TikTok handle connects to the person.
 const STAGE_NAME = "Shap Shufflz";
 const NAME = "Jonah Shapiro";
-const PHONE = "(917) 555-0199";
-const EMAIL = "hello@jonahshapiro.com";
+// Phone, email, and the Instagram handle/URL all live in site-config.ts —
+// they're still placeholders, and the point of the config is that swapping
+// them for real values is a one-file edit. Import `site` and read from it.
 const AREA = "Based in New York City — available across the tri-state area";
 
 const wrap = "mx-auto w-full max-w-[1160px] px-6 md:px-16";
@@ -753,8 +755,8 @@ function TheExperience() {
 // the rotation below, a fresh "trick" each time. href stays the profile
 // page as a plain fallback for no-JS/middle-click; onClick intercepts the
 // normal click to send JS-enabled visitors to a random video instead.
-const TIKTOK_URL = "https://www.tiktok.com/@shap_shufflz_magic";
-const TIKTOK_HANDLE = "@shap_shufflz_magic";
+// (Profile URL + handle come from site-config.ts; these deep links are
+// specific videos and stay here.)
 const TIKTOK_VIDEO_URLS = [
   "https://www.tiktok.com/@shap_shufflz_magic/video/7645045371244154142",
   "https://www.tiktok.com/@shap_shufflz_magic/video/7644400672254790943",
@@ -792,7 +794,7 @@ function TrickOfTheDay() {
           .trick-card:hover .trick-card-arrow { transform: translateX(4px); }
         `}</style>
         <a
-          href={TIKTOK_URL}
+          href={site.tiktokUrl}
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => {
@@ -800,7 +802,7 @@ function TrickOfTheDay() {
             const video = TIKTOK_VIDEO_URLS[Math.floor(Math.random() * TIKTOK_VIDEO_URLS.length)];
             window.open(video, "_blank", "noopener,noreferrer");
           }}
-          aria-label="Watch a random trick from Shap Shufflz on TikTok — @shap_shufflz_magic"
+          aria-label={`Watch a random trick from ${STAGE_NAME} on TikTok — ${site.tiktokHandle}`}
           className="trick-card relative mx-auto flex w-full max-w-[380px] flex-col items-center justify-center gap-4 overflow-hidden px-6 py-10"
           style={{ background: BG_ELEVATED, border: `1px solid ${hexToRgba(ACCENT, 0.3)}`, borderRadius: 4, aspectRatio: "9 / 16" }}
         >
@@ -833,7 +835,7 @@ function TrickOfTheDay() {
             className="relative mt-2 text-[11px] font-semibold uppercase tracking-[0.18em]"
             style={{ color: TEXT_MUTED }}
           >
-            {TIKTOK_HANDLE}
+            {site.tiktokHandle}
           </span>
         </a>
       </RiseFromDark>
@@ -1205,7 +1207,7 @@ function Booking() {
             set through cocktails, or 60 to 90 minutes across the whole room.
           </p>
           <div className="mt-8 space-y-3 text-[15px]">
-            {[["Call or text", PHONE], ["Email", EMAIL], ["Based", AREA]].map(([k, v]) => (
+            {[["Call or text", site.phone], ["Email", site.email], ["Based", AREA]].map(([k, v]) => (
               <div key={k} className="flex gap-3">
                 <span className="w-20 shrink-0" style={{ color: TEXT_MUTED }}>{k}</span>
                 <span style={{ color: TEXT }}>{v}</span>
@@ -1346,7 +1348,7 @@ function Booking() {
                   className="text-[15px]"
                   style={{ color: TEXT }}
                 >
-                  That didn&apos;t send. Call or text {PHONE}, or{" "}
+                  That didn&apos;t send. Call or text {site.phone}, or{" "}
                   <button type="button" onClick={() => setState("idle")} className="underline" style={{ color: ACCENT }}>
                     try again
                   </button>.
@@ -1361,9 +1363,8 @@ function Booking() {
 }
 
 // ── Instagram — a link block, not a section: minimal padding, no eyebrow,
-// no headline. Sits between the booking form and the footer. ───────────────
-const INSTAGRAM_HANDLE = "@jonahshapiro.magic";
-const INSTAGRAM_URL = "https://www.instagram.com/jonahshapiro.magic";
+// no headline. Sits between the booking form and the footer. Handle + URL
+// are still placeholders; both come from site-config.ts. ───────────────────
 function InstagramBlock() {
   return (
     <section className="relative w-full py-[40px] md:py-[56px]" style={{ background: BG }}>
@@ -1372,7 +1373,7 @@ function InstagramBlock() {
       `}</style>
       <div className={`${wrap} text-center`}>
         <a
-          href={INSTAGRAM_URL}
+          href={site.instagramUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="ig-block inline-block"
@@ -1384,7 +1385,7 @@ function InstagramBlock() {
             className="ig-handle mt-2 block text-[1.25rem] tracking-[0.1em]"
             style={{ color: ACCENT, transition: "color 200ms ease-out" }}
           >
-            {INSTAGRAM_HANDLE}
+            {site.instagramHandle}
           </span>
         </a>
       </div>
@@ -1407,24 +1408,18 @@ function MagicianFooter() {
           Close enough to see it. Still won&apos;t believe it.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px]" style={{ color: TEXT_MUTED }}>
-          <span>{PHONE}</span>
-          <span>{EMAIL}</span>
-          <span>Instagram</span>
+          <span>{site.phone}</span>
+          <span>{site.email}</span>
+          <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" style={{ color: TEXT_MUTED }}>
+            Instagram
+          </a>
         </div>
         <p className="mt-8 text-[12px]" style={{ color: TEXT_MUTED }}>
           © 2026 {NAME}. All rights reserved.
         </p>
+        {/* Plain text, not a link — vilas.studio doesn't resolve. */}
         <p className="mt-2 text-[11px]" style={{ color: TEXT_MUTED, opacity: 0.75 }}>
-          Site by{" "}
-          <a
-            href="https://vilas.studio"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2"
-            style={{ color: TEXT_MUTED }}
-          >
-            vilas.studio
-          </a>
+          Site by vilas.studio
         </p>
       </div>
     </footer>
