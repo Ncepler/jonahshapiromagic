@@ -851,7 +851,7 @@ const PACKAGES = [
   {
     name: "Close-Up Set",
     price: "From $150",
-    desc: "A short set. I walk the room with a deck of cards, doing tricks table to table.",
+    desc: "About 30 to 45 minutes. I walk the room with a deck of cards, doing tricks table to table.",
   },
   {
     name: "Full Close-Up",
@@ -1037,7 +1037,9 @@ const FAQS = [
   },
   {
     q: "What does close-up magic actually look like at an event?",
-    a: "I walk the room with a deck of cards and stop at each group, doing tricks right in your hands. Everyone gets their own moment. A stage show is the opposite. One room, one show, everyone watching the same reveal at once.",
+    // No stage-show comparison here — stage shows aren't one of the three
+    // packages, and contrasting against one implies a service that isn't sold.
+    a: "I walk the room with a deck of cards and stop at each group, doing tricks right in your hands. Nobody's watching from across the room — it's happening two feet in front of you, in your own hands half the time. Everyone gets their own moment instead of one show everybody sits through.",
   },
   {
     q: "How far in advance should I book?",
@@ -1146,17 +1148,17 @@ function About() {
             <span style={{ color: TEXT_MUTED }}>A decision, made in front of you.</span>
           </h2>
           <p className="mt-6 max-w-md text-[16px] leading-[1.7]" style={{ color: TEXT }}>
-            His name is Jonah Shapiro. On the booking, on TikTok, and in your
-            group chat afterward, he&apos;s Shap Shufflz — same person, better
+            My name&apos;s Jonah Shapiro. On the booking, on TikTok, and in your
+            group chat afterward, I&apos;m Shap Shufflz — same person, better
             name for what happens once the deck comes out.
           </p>
           <p className="mt-4 max-w-md text-[16px] leading-[1.7]" style={{ color: TEXT }}>
-            Jonah started with a deck of cards and an audience of one — himself,
-            in a mirror, for longer than he&apos;d like to admit. These days it&apos;s
+            I started with a deck of cards and an audience of one — me, in a
+            mirror, for longer than I&apos;d like to admit. These days it&apos;s
             parties across the tri-state area, corporate rooms, and the
-            occasional wedding, but
-            the method never changes: get close enough that the audience stops
-            looking for the seam, then give them a moment they can&apos;t explain.
+            occasional wedding, but the method never changes. Get close enough
+            that you stop looking for the seam, then give you a moment you
+            can&apos;t explain.
           </p>
           <p className="mt-4 max-w-md text-[16px] leading-[1.7]" style={{ color: TEXT }}>
             No smoke machines. No cartoon top hat. Just cards, a little
