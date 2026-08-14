@@ -925,13 +925,13 @@ function WhatItCosts() {
 }
 
 // ── The Takeaway — branded decks as a booking add-on, not a store. There's no
-// cart, designer, or quantity picker on purpose. Jonah has no relationship
-// with any printer, so the page claims none: no vendor is named as a partner
-// and no fulfillment promise is made. No real deck photos exist yet, so the
-// left column is a labeled stylized mock (§10), not a fake product shot.
-// Not an affiliate or partner link — just a pointer to a printer that does
-// this well, so a client can design their own back and order it themselves.
-// The site claims no arrangement with them and doesn't fulfill the order.
+// cart, designer, or quantity picker on purpose: the ask is "mention it when
+// you book," and Jonah arranges the print himself. No vendor is named as a
+// partner or sponsor. No real deck photos exist yet, so the left column is a
+// labeled stylized mock (§10), not a fake product shot.
+// The Shuffled Ink link is not an affiliate or partner link — just a pointer
+// to a printer that does this well, kept deliberately secondary (a text aside
+// under the booking button) so it can't pull a visitor off-page mid-funnel.
 const DECK_PRINTER_URL = "https://shuffledink.com";
 const DECK_POINTS = [
   "Casino-quality stock. Real snap, real weight.",
@@ -961,8 +961,8 @@ function TheTakeaway() {
           Add a custom deck to your booking — your logo, event date, or wedding
           monogram on the back of every card. Guests take them home. They
           don&apos;t get tossed like a pen or a keychain. Every deck is
-          casino-quality, printed to order. Design one yourself with the link
-          below, or just mention it when you book.
+          casino-quality, printed to order. Mention it when you book and
+          I&apos;ll handle it.
         </p>
       </RiseFromDark>
       <div className="mt-14 grid items-center gap-12 md:grid-cols-2 md:gap-16">
@@ -1006,23 +1006,29 @@ function TheTakeaway() {
             favors. Guests actually keep them. Pricing depends on quantity and
             finish — usually $3 to $6 per deck at typical event sizes.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+          {/* Booking is the primary action here. The printer link used to sit
+              beside it at equal weight, which asked a visitor to choose
+              between two things and sent half of them off-site in the middle
+              of the funnel. It's an aside below the button now. */}
+          <div className="mt-8">
             <a
-              href={DECK_PRINTER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#magician-book"
               className="magician-curtain-btn inline-block px-6 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em]"
               style={{ background: BG_ELEVATED, color: TEXT, border: `1px solid ${ACCENT}` }}
             >
-              Make your own at Shuffled Ink ↗
+              Ask about it when you book
             </a>
-            <a
-              href="#magician-book"
-              className="deck-ask text-[14px] underline underline-offset-4"
-              style={{ color: TEXT_MUTED, transition: "color 200ms ease-out" }}
-            >
-              or ask about it when you book
-            </a>
+            <div className="mt-3">
+              <a
+                href={DECK_PRINTER_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="deck-ask inline-flex min-h-[44px] items-center text-[0.8rem]"
+                style={{ color: TEXT_MUTED, transition: "color 200ms ease-out" }}
+              >
+                Or design one yourself ↗
+              </a>
+            </div>
           </div>
         </RiseFromDark>
       </div>
