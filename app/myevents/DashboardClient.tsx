@@ -1,11 +1,12 @@
 "use client";
 
 // Top-level client shell for /myevents. Owns the state shared across
-// sections — templates + which one (if any) is armed today; bookings and
-// snippets state land in Groups 5-7 as their sections stop being stubs.
+// sections — templates + which one (if any) is armed, snippets, and the
+// toast stack. Bookings state lands in Groups 6-7 as those sections stop
+// being stubs.
 
-import { useCallback, useState } from "react";
-import type { CustomTemplate } from "@/lib/db-types";
+import { useCallback, useRef, useState } from "react";
+import type { CustomTemplate, Snippet } from "@/lib/db-types";
 import { BG } from "./theme";
 import { Header } from "./Header";
 import { MyEventsGlobalStyle } from "./MyEventsGlobalStyle";
@@ -13,19 +14,30 @@ import { TemplatesSection } from "./TemplatesSection";
 import { SnippetsSection } from "./SnippetsSection";
 import { CalendarSection } from "./CalendarSection";
 import { BookingsSection } from "./BookingsSection";
-import { ToastStack, type ToastItem } from "./Toast";
+import { ToastStack, TOAST_DURATION_MS, type ToastItem } from "./Toast";
+import { copyToClipboard } from "./clipboard";
 
 async function readError(res: Response, fallback: string): Promise<string> {
   const data = (await res.json().catch(() => ({}))) as { error?: string };
   return data.error ?? fallback;
 }
 
-export function DashboardClient({ initialTemplates }: { initialTemplates: CustomTemplate[] }) {
-  // Real toast plumbing (id counter, auto-dismiss timer) lands in Group 7,
-  // alongside the first thing that actually copies something to the
-  // clipboard on a booking click.
-  const [toasts] = useState<ToastItem[]>([]);
+export function DashboardClient({
+  initialTemplates,
+  initialSnippets,
+}: {
+  initialTemplates: CustomTemplate[];
+  initialSnippets: Snippet[];
+}) {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const toastIdRef = useRef(0);
+  const addToast = useCallback((message: string) => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), TOAST_DURATION_MS);
+  }, []);
 
+  // ── Templates ────────────────────────────────────────────────────────
   const [templates, setTemplates] = useState<CustomTemplate[]>(initialTemplates);
   const [armedTemplateId, setArmedTemplateId] = useState<string | null>(null);
 
@@ -78,6 +90,45 @@ export function DashboardClient({ initialTemplates }: { initialTemplates: Custom
     });
   }, []);
 
+  // ── Snippets ─────────────────────────────────────────────────────────
+  const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
+
+  const copySnippet = useCallback(
+    async (snippet: Snippet) => {
+      const ok = await copyToClipboard(snippet.body);
+      addToast(ok ? "Copied." : "Couldn't copy — try again.");
+    },
+    [addToast],
+  );
+
+  const addSnippet = useCallback(async (label: string, body: string) => {
+    const res = await fetch("/api/snippets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label, body }),
+    });
+    if (!res.ok) throw new Error(await readError(res, "Could not save the snippet."));
+    const { snippet } = (await res.json()) as { snippet: Snippet };
+    setSnippets((prev) => [...prev, snippet]);
+  }, []);
+
+  const editSnippet = useCallback(async (id: string, label: string, body: string) => {
+    const res = await fetch(`/api/snippets/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label, body }),
+    });
+    if (!res.ok) throw new Error(await readError(res, "Could not save the snippet."));
+    const { snippet } = (await res.json()) as { snippet: Snippet };
+    setSnippets((prev) => prev.map((s) => (s.id === id ? snippet : s)));
+  }, []);
+
+  const deleteSnippet = useCallback(async (id: string) => {
+    const res = await fetch(`/api/snippets/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error(await readError(res, "Could not delete the snippet."));
+    setSnippets((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: BG }}>
       <MyEventsGlobalStyle />
@@ -92,7 +143,13 @@ export function DashboardClient({ initialTemplates }: { initialTemplates: Custom
           onDelete={deleteTemplate}
           onReorder={reorderTemplates}
         />
-        <SnippetsSection />
+        <SnippetsSection
+          snippets={snippets}
+          onCopy={copySnippet}
+          onAdd={addSnippet}
+          onEdit={editSnippet}
+          onDelete={deleteSnippet}
+        />
         <CalendarSection />
         <BookingsSection />
       </main>

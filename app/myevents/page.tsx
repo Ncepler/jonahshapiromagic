@@ -9,16 +9,16 @@
 
 import { MagicianCursor } from "../MagicianCursor";
 import { DashboardClient } from "./DashboardClient";
-import { getOrSeedTemplates } from "@/lib/myevents-data";
+import { getOrSeedSnippets, getOrSeedTemplates } from "@/lib/myevents-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function MyEventsPage() {
-  const templates = await getOrSeedTemplates();
+  const [templates, snippets] = await Promise.all([getOrSeedTemplates(), getOrSeedSnippets()]);
 
   return (
     <MagicianCursor>
-      <DashboardClient initialTemplates={templates} />
+      <DashboardClient initialTemplates={templates} initialSnippets={snippets} />
     </MagicianCursor>
   );
 }
