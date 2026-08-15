@@ -6,7 +6,7 @@
 // being stubs.
 
 import { useCallback, useRef, useState } from "react";
-import type { Booking, CustomTemplate, Snippet } from "@/lib/db-types";
+import type { Booking, BookingStatus, CustomTemplate, Snippet } from "@/lib/db-types";
 import type { BookingsTab } from "./types";
 import { BG } from "./theme";
 import { Header } from "./Header";
@@ -133,19 +133,76 @@ export function DashboardClient({
   }, []);
 
   // ── Bookings / Calendar ──────────────────────────────────────────────
-  // Bookings themselves are still read-only here — accept/decline/etc.
-  // land in Group 7. The tab setter is used now so the Calendar's "See
-  // full details →" can switch the (not-yet-built) Bookings section to
-  // Accepted before scrolling to the card.
-  const [bookings] = useState<Booking[]>(initialBookings);
-  const [, setBookingsTab] = useState<BookingsTab>("pending");
+  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
+  const [bookingsTab, setBookingsTab] = useState<BookingsTab>("pending");
+  const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
+  const [highlightedBookingId, setHighlightedBookingId] = useState<string | null>(null);
 
+  const toggleExpandBooking = useCallback((id: string) => {
+    setExpandedBookingId((prev) => (prev === id ? null : id));
+  }, []);
+
+  const updateBookingStatus = useCallback(async (id: string, status: BookingStatus, eventDate?: string) => {
+    const body: Record<string, unknown> = { status };
+    if (eventDate !== undefined) body.event_date = eventDate;
+    const res = await fetch(`/api/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await readError(res, "Could not update the booking."));
+    const { booking } = (await res.json()) as { booking: Booking };
+    setBookings((prev) => prev.map((b) => (b.id === id ? booking : b)));
+  }, []);
+
+  // Accepting deliberately does NOT arm a template afterward — Jonah picks
+  // which one fits in a separate, deliberate click (Group 9).
+  const acceptBooking = useCallback(
+    (id: string, eventDate?: string) => {
+      void updateBookingStatus(id, "accepted", eventDate);
+    },
+    [updateBookingStatus],
+  );
+  const declineBooking = useCallback(
+    (id: string) => {
+      void updateBookingStatus(id, "declined");
+    },
+    [updateBookingStatus],
+  );
+  const unarchiveBooking = useCallback(
+    (id: string) => {
+      void updateBookingStatus(id, "pending");
+    },
+    [updateBookingStatus],
+  );
+
+  // The other half of TemplatesSection's arm flow: clicking a booking card
+  // while a template is armed copies it (with {{name}} filled in) instead
+  // of expanding the card.
+  const copyArmedTemplateForBooking = useCallback(
+    async (bookingName: string) => {
+      if (!armedTemplateId) return;
+      const template = templates.find((t) => t.id === armedTemplateId);
+      setArmedTemplateId(null);
+      if (!template) return;
+      const text = template.body.replaceAll("{{name}}", bookingName);
+      const ok = await copyToClipboard(text);
+      addToast(ok ? "Copied — ready to paste into your email." : "Couldn't copy — try again.");
+    },
+    [armedTemplateId, templates, addToast],
+  );
+
+  // Calendar's "See full details →" — switches to Accepted (the only tab
+  // the calendar ever shows), expands the card, briefly highlights it, and
+  // scrolls it into view once the tab switch has rendered it.
   const focusBooking = useCallback((id: string) => {
     setBookingsTab("accepted");
-    // Give the tab switch a tick to render the target card before scrolling.
+    setExpandedBookingId(id);
+    setHighlightedBookingId(id);
     setTimeout(() => {
       document.getElementById(`booking-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 50);
+    setTimeout(() => setHighlightedBookingId((prev) => (prev === id ? null : prev)), 2000);
   }, []);
 
   return (
@@ -170,7 +227,20 @@ export function DashboardClient({
           onDelete={deleteSnippet}
         />
         <CalendarSection bookings={bookings} onFocusBooking={focusBooking} />
-        <BookingsSection />
+        <BookingsSection
+          bookings={bookings}
+          tab={bookingsTab}
+          onTabChange={setBookingsTab}
+          expandedBookingId={expandedBookingId}
+          onToggleExpand={toggleExpandBooking}
+          highlightedBookingId={highlightedBookingId}
+          armedTemplateId={armedTemplateId}
+          onCopyArmedTemplate={copyArmedTemplateForBooking}
+          onAccept={acceptBooking}
+          onDecline={declineBooking}
+          onArchive={declineBooking}
+          onUnarchive={unarchiveBooking}
+        />
       </main>
       <ToastStack toasts={toasts} />
     </div>
