@@ -1,14 +1,65 @@
-import { Section, SectionHeading } from "./Section";
-import { TEXT_MUTED } from "./theme";
+"use client";
 
-// Placeholder — Group 6 replaces this with the month/week calendar grid.
-export function CalendarSection() {
+// Calendar — Month/Week toggle, accepted bookings only (pending/declined
+// never appear here). Both views share CalendarNav (←/→/Today); clicking a
+// booking (via a day's popover in Month, or directly in Week) jumps to and
+// highlights that card in the Bookings section below.
+
+import { useMemo, useState } from "react";
+import type { Booking } from "@/lib/db-types";
+import { Section, SectionHeading } from "./Section";
+import { CalendarMonth } from "./CalendarMonth";
+import { CalendarWeek } from "./CalendarWeek";
+import { ACCENT, BG, BORDER, TEXT_MUTED } from "./theme";
+
+type View = "month" | "week";
+
+export function CalendarSection({
+  bookings,
+  onFocusBooking,
+}: {
+  bookings: Booking[];
+  onFocusBooking: (id: string) => void;
+}) {
+  const [view, setView] = useState<View>("month");
+  const [reference, setReference] = useState(() => new Date());
+
+  const accepted = useMemo(
+    () => bookings.filter((b) => b.status === "accepted" && b.event_date),
+    [bookings],
+  );
+
   return (
     <Section id="calendar">
-      <SectionHeading eyebrow="Calendar" heading="The schedule." />
-      <p className="text-[14px]" style={{ color: TEXT_MUTED }}>
-        Coming in Group 6.
-      </p>
+      <SectionHeading
+        eyebrow="Calendar"
+        heading="The schedule."
+        right={
+          <div className="flex gap-1 rounded-[4px] p-1" style={{ border: `1px solid ${BORDER}` }}>
+            {(["month", "week"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                className="rounded-[3px] px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{
+                  background: view === v ? ACCENT : "transparent",
+                  color: view === v ? BG : TEXT_MUTED,
+                  outlineColor: ACCENT,
+                }}
+              >
+                {v === "month" ? "Month" : "Week"}
+              </button>
+            ))}
+          </div>
+        }
+      />
+
+      {view === "month" ? (
+        <CalendarMonth reference={reference} setReference={setReference} bookings={accepted} onFocusBooking={onFocusBooking} />
+      ) : (
+        <CalendarWeek reference={reference} setReference={setReference} bookings={accepted} onFocusBooking={onFocusBooking} />
+      )}
     </Section>
   );
 }

@@ -9,16 +9,20 @@
 
 import { MagicianCursor } from "../MagicianCursor";
 import { DashboardClient } from "./DashboardClient";
-import { getOrSeedSnippets, getOrSeedTemplates } from "@/lib/myevents-data";
+import { getBookings, getOrSeedSnippets, getOrSeedTemplates } from "@/lib/myevents-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function MyEventsPage() {
-  const [templates, snippets] = await Promise.all([getOrSeedTemplates(), getOrSeedSnippets()]);
+  const [templates, snippets, bookings] = await Promise.all([
+    getOrSeedTemplates(),
+    getOrSeedSnippets(),
+    getBookings(),
+  ]);
 
   return (
     <MagicianCursor>
-      <DashboardClient initialTemplates={templates} initialSnippets={snippets} />
+      <DashboardClient initialTemplates={templates} initialSnippets={snippets} initialBookings={bookings} />
     </MagicianCursor>
   );
 }

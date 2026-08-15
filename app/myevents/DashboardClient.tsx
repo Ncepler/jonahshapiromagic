@@ -6,7 +6,8 @@
 // being stubs.
 
 import { useCallback, useRef, useState } from "react";
-import type { CustomTemplate, Snippet } from "@/lib/db-types";
+import type { Booking, CustomTemplate, Snippet } from "@/lib/db-types";
+import type { BookingsTab } from "./types";
 import { BG } from "./theme";
 import { Header } from "./Header";
 import { MyEventsGlobalStyle } from "./MyEventsGlobalStyle";
@@ -25,9 +26,11 @@ async function readError(res: Response, fallback: string): Promise<string> {
 export function DashboardClient({
   initialTemplates,
   initialSnippets,
+  initialBookings,
 }: {
   initialTemplates: CustomTemplate[];
   initialSnippets: Snippet[];
+  initialBookings: Booking[];
 }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const toastIdRef = useRef(0);
@@ -129,6 +132,22 @@ export function DashboardClient({
     setSnippets((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
+  // ── Bookings / Calendar ──────────────────────────────────────────────
+  // Bookings themselves are still read-only here — accept/decline/etc.
+  // land in Group 7. The tab setter is used now so the Calendar's "See
+  // full details →" can switch the (not-yet-built) Bookings section to
+  // Accepted before scrolling to the card.
+  const [bookings] = useState<Booking[]>(initialBookings);
+  const [, setBookingsTab] = useState<BookingsTab>("pending");
+
+  const focusBooking = useCallback((id: string) => {
+    setBookingsTab("accepted");
+    // Give the tab switch a tick to render the target card before scrolling.
+    setTimeout(() => {
+      document.getElementById(`booking-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: BG }}>
       <MyEventsGlobalStyle />
@@ -150,7 +169,7 @@ export function DashboardClient({
           onEdit={editSnippet}
           onDelete={deleteSnippet}
         />
-        <CalendarSection />
+        <CalendarSection bookings={bookings} onFocusBooking={focusBooking} />
         <BookingsSection />
       </main>
       <ToastStack toasts={toasts} />
