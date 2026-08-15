@@ -9,13 +9,16 @@
 
 import { MagicianCursor } from "../MagicianCursor";
 import { DashboardClient } from "./DashboardClient";
+import { getOrSeedTemplates } from "@/lib/myevents-data";
 
 export const dynamic = "force-dynamic";
 
-export default function MyEventsPage() {
+export default async function MyEventsPage() {
+  const templates = await getOrSeedTemplates();
+
   return (
     <MagicianCursor>
-      <DashboardClient />
+      <DashboardClient initialTemplates={templates} />
     </MagicianCursor>
   );
 }
