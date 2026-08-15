@@ -8,7 +8,8 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { MagicianCursor } from "../../MagicianCursor";
-import { ACCENT, BG, BG_ELEVATED, BORDER, DISPLAY, TEXT, TEXT_MUTED } from "../theme";
+import { MyEventsGlobalStyle } from "../MyEventsGlobalStyle";
+import { ACCENT, BG, BG_ELEVATED, BORDER, buttonClass, DISPLAY, TEXT, TEXT_MUTED } from "../theme";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function LoginPage() {
 
   return (
     <MagicianCursor>
+      <MyEventsGlobalStyle />
       <div className="flex min-h-screen items-center justify-center px-6" style={{ background: BG }}>
         <div
           className="w-full max-w-[360px] rounded-[4px] p-8"
@@ -102,7 +104,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={state === "sending"}
-              className="w-full rounded-[4px] px-6 py-3 text-[14px] font-semibold uppercase tracking-[0.08em] transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+              className={`${buttonClass} w-full py-3`}
               style={{ background: BG, color: TEXT, border: `1px solid ${ACCENT}`, outlineColor: ACCENT }}
             >
               {state === "sending" ? "Checking…" : "Enter"}

@@ -14,6 +14,18 @@ export const BORDER = "#2a1515";
 export const DISPLAY = "var(--font-playfair)";
 export const SANS = "var(--font-tight)";
 
+/** hex → rgba(), for the same gold-hover-wash treatment the public site's
+ * `.magician-curtain-btn` uses (app/page.tsx) — reimplemented locally here
+ * (as `.myevents-btn`, see MyEventsGlobalStyle) so the dashboard doesn't
+ * reach into the public page's module. */
+export function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace("#", "");
+  const r = Number.parseInt(clean.slice(0, 2), 16);
+  const g = Number.parseInt(clean.slice(2, 4), 16);
+  const b = Number.parseInt(clean.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 /** Page/section max width + horizontal padding, matching the public site's
  * `wrap` helper but capped at the 1200px the dashboard spec asks for. */
 export const wrap = "mx-auto w-full max-w-[1200px] px-5 md:px-10";
@@ -27,15 +39,12 @@ export const fieldStyle = {
   borderRadius: 4,
 } as const;
 
-/** Shared className for the gold-bordered "primary" button used across the
- * dashboard (Accept, Save, submit, etc.) — same shape as the public site's
- * booking-form submit button. */
-export const primaryButtonClass =
-  "inline-flex items-center justify-center rounded-[4px] px-5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.08em] transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
-
-/** Shared className for the muted-border "secondary" button (Decline,
- * Cancel, etc.). */
-export const secondaryButtonClass =
-  "inline-flex items-center justify-center rounded-[4px] px-5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.08em] transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
+/** Shared className for every button in the dashboard — pair with an
+ * inline `border` color (ACCENT for primary actions like Accept/Save,
+ * TEXT_MUTED for secondary ones like Decline/Cancel). The gold hover wash
+ * itself comes from the global `.myevents-btn:hover` rule in
+ * MyEventsGlobalStyle, mirroring the public site's `.magician-curtain-btn`. */
+export const buttonClass =
+  "myevents-btn inline-flex items-center justify-center rounded-[4px] px-5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.08em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
 
 export const eyebrowClass = "text-[12px] font-semibold uppercase tracking-[0.2em]";
