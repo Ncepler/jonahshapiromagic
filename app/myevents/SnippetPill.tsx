@@ -69,8 +69,8 @@ export function SnippetPill({
                   setMenuOpen(false);
                   onEdit();
                 }}
-                className="block w-full px-3 py-1.5 text-left hover:opacity-80"
-                style={{ color: TEXT }}
+                className="block w-full px-3 py-1.5 text-left hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{ color: TEXT, outlineColor: ACCENT }}
               >
                 Edit
               </button>
@@ -80,8 +80,8 @@ export function SnippetPill({
                   setMenuOpen(false);
                   onDelete();
                 }}
-                className="block w-full px-3 py-1.5 text-left hover:opacity-80"
-                style={{ color: TEXT }}
+                className="block w-full px-3 py-1.5 text-left hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{ color: TEXT, outlineColor: ACCENT }}
               >
                 Delete
               </button>
