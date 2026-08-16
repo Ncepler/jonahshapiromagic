@@ -11,8 +11,12 @@ export const TEXT_MUTED = "#8a7a6a";
 export const ACCENT = "#c9a961";
 export const BORDER = "#2a1515";
 
-export const DISPLAY = "var(--font-playfair)";
-export const SANS = "var(--font-tight)";
+// Same two of the site's three faces the public page uses for the same jobs
+// (see app/layout.tsx). The dashboard has no marquee, so it never touches
+// --font-hero. BODY doesn't need to be applied anywhere by hand — globals.css
+// puts it on <body>, and everything here inherits it.
+export const DISPLAY = "var(--font-display)";
+export const BODY = "var(--font-body)";
 
 /** hex → rgba(), for the same gold-hover-wash treatment the public site's
  * `.magician-curtain-btn` uses (app/page.tsx) — reimplemented locally here

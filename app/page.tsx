@@ -135,8 +135,12 @@ function curtainWash(opts: { bottom?: boolean; corners?: boolean } = {}) {
   return layers.join(", ");
 }
 
-const DISPLAY = "var(--font-playfair)"; // playbill serif, §16b
-const SANS = "var(--font-tight)"; // clean quiet body sans
+// The three faces, wired up in app/layout.tsx. HERO is the marquee name and
+// nothing else on the page; DISPLAY carries every other heading; BODY is
+// everything that isn't a heading. Nothing here sets a font outside these.
+const HERO = "var(--font-hero)"; // Cinzel Decorative — the big name only
+const DISPLAY = "var(--font-display)"; // Cinzel — headings, section titles
+const BODY = "var(--font-body)"; // EB Garamond — body, labels, UI
 
 // Two names, one performer: the marquee is his own name, with the stage name
 // riding alongside it so the TikTok handle connects to the person.
@@ -590,8 +594,12 @@ function Hero() {
       <div className={`${wrap} relative flex w-full flex-col items-center pb-24 pt-40 text-center`}>
         <RiseFromDark>
           <h1
-            className="text-[15vw] uppercase leading-[0.92] tracking-[0.02em] sm:text-[9vw] md:text-[6.5rem]"
-            style={{ color: TEXT, fontFamily: DISPLAY }}
+            // The one place HERO is used. Cinzel Decorative's flourishes need
+            // this size to be read as flourishes, and the tracking is tighter
+            // than the rest of the page's caps because the face already carries
+            // its own spacing in the serifs.
+            className="text-[13vw] uppercase leading-[1.02] tracking-[0.005em] sm:text-[8vw] md:text-[5.6rem]"
+            style={{ color: TEXT, fontFamily: HERO }}
           >
             {NAME}
           </h1>
@@ -602,8 +610,12 @@ function Hero() {
             {STAGE_NAME}
           </p>
           <p
-            className="mx-auto mt-8 max-w-md text-[22px] leading-[1.35] md:text-[28px]"
-            style={{ color: TEXT, fontFamily: DISPLAY, fontStyle: "italic" }}
+            // Body face, italic — Cinzel has no true italic, and a synthesized
+            // oblique on inscriptional caps looks like a rendering bug. EB
+            // Garamond italic is a real cut and reads as a spoken line, which
+            // is what this is.
+            className="mx-auto mt-8 max-w-md text-[26px] leading-[1.3] md:text-[34px]"
+            style={{ color: TEXT, fontFamily: BODY, fontStyle: "italic" }}
           >
             You won&apos;t
             <br />
@@ -736,7 +748,7 @@ function ShowCard({ show, index }: { show: (typeof SHOWS)[number]; index: number
           <h3 className="mt-2 text-[19px] leading-[1.15]" style={{ color: TEXT, fontFamily: DISPLAY }}>
             {show.label}
           </h3>
-          <p className="mt-2 text-[13px] leading-[1.5]" style={{ color: TEXT_MUTED, fontFamily: SANS }}>
+          <p className="mt-2 text-[13px] leading-[1.5]" style={{ color: TEXT_MUTED, fontFamily: BODY }}>
             {show.desc}
           </p>
         </div>
@@ -1718,7 +1730,8 @@ function MagicianFooter() {
         <p className="mt-1 text-[11px] uppercase tracking-[0.24em]" style={{ color: TEXT_MUTED }}>
           {STAGE_NAME}
         </p>
-        <p className="mx-auto mt-3 max-w-sm text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED, fontFamily: DISPLAY, fontStyle: "italic" }}>
+        {/* Italic, so body face — same reason as the hero tagline above. */}
+        <p className="mx-auto mt-3 max-w-sm text-[15px] leading-[1.6]" style={{ color: TEXT_MUTED, fontFamily: BODY, fontStyle: "italic" }}>
           Close enough to see it. Still won&apos;t believe it.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 text-[14px]" style={{ color: TEXT_MUTED }}>
@@ -1777,7 +1790,7 @@ function MagicianSite() {
     // wraps ALL of the magician's content, only this page — see
     // MagicianCursor.tsx for exactly how the wand cursor stays scoped here
     <MagicianCursor>
-      <div className="magician-focus-scope antialiased" style={{ background: BG, color: TEXT_MUTED, fontFamily: SANS, position: "relative" }}>
+      <div className="magician-focus-scope antialiased" style={{ background: BG, color: TEXT_MUTED, fontFamily: BODY, position: "relative" }}>
         <CurtainReveal />
         {/* Shared hover state for the two curtain-styled CTAs ("Book the
             show" / "Send it") — background shifts to a faint gold wash on

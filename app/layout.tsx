@@ -1,18 +1,46 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter_Tight } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, EB_Garamond } from "next/font/google";
 import "./globals.css";
 
-// Playbill serif for display type, quiet sans for body/UI — see app/page.tsx
-// (§16b) for how these are used: var(--font-playfair) / var(--font-tight).
-const playfair = Playfair_Display({
+// ── Type system ─────────────────────────────────────────────────────────────
+// Three faces, one job each, and nothing on the site sets a font outside them.
+// See app/page.tsx (HERO / DISPLAY / BODY) and app/myevents/theme.ts, which
+// are the only two places that name these variables.
+//
+//   --font-hero     Cinzel Decorative — the marquee name in the hero, and only
+//                   there. It has flourishes on the caps that are lovely once
+//                   at 6rem and noise anywhere smaller.
+//   --font-display  Cinzel — every other heading and section title. Roman
+//                   inscriptional caps: theatrical, but it holds a line of
+//                   type at 19px without turning into decoration.
+//   --font-body     EB Garamond — body copy, labels, buttons, form fields, the
+//                   dashboard. Chosen over Cormorant Garamond because the site
+//                   runs a lot of 13–15px text on near-black, and Cormorant's
+//                   hairline strokes disappear at that size against this
+//                   background. EB Garamond keeps its weight.
+//
+// Cinzel and Cinzel Decorative are caps-only faces — lowercase renders as
+// small caps — which is why headings can carry sentence-case copy and still
+// read as a playbill. Neither has a true italic, so the two italic lines on
+// the page (the hero tagline, the footer's closing line) are set in EB
+// Garamond italic rather than a synthesized oblique.
+const cinzelDecorative = Cinzel_Decorative({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  weight: ["400", "700"],
+  variable: "--font-hero",
   display: "swap",
 });
 
-const interTight = Inter_Tight({
+const cinzel = Cinzel({
   subsets: ["latin"],
-  variable: "--font-tight",
+  variable: "--font-display",
+  display: "swap",
+});
+
+const ebGaramond = EB_Garamond({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-body",
   display: "swap",
 });
 
@@ -28,7 +56,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${interTight.variable}`}>
+    <html
+      lang="en"
+      className={`${cinzelDecorative.variable} ${cinzel.variable} ${ebGaramond.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

@@ -26,4 +26,11 @@ html {
    here reads as a stray blue band above or below the content. */
 body {
   background: #0a0505;
+  /* Body copy for the whole site — the public page and the /myevents
+     dashboard both. Neither one sets a font on its own root, so this is what
+     everything inherits unless it is explicitly a heading (see app/layout.tsx
+     for the three faces and what each is for). The fallback chain matters:
+     until the webfont lands, a serif stack keeps the page from flashing in
+     system sans and reflowing. */
+  font-family: var(--font-body), "EB Garamond", Georgia, "Times New Roman", serif;
 }
