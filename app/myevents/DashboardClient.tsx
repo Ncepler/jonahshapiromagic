@@ -6,7 +6,7 @@
 // being stubs.
 
 import { useCallback, useRef, useState } from "react";
-import type { Booking, BookingStatus, CustomTemplate, Snippet } from "@/lib/db-types";
+import type { Booking, BookingStatus, CustomTemplate, Earning, Snippet } from "@/lib/db-types";
 import type { BookingsTab } from "./types";
 import { BG } from "./theme";
 import { Header } from "./Header";
@@ -14,6 +14,7 @@ import { MyEventsGlobalStyle } from "./MyEventsGlobalStyle";
 import { TemplatesSection } from "./TemplatesSection";
 import { SnippetsSection } from "./SnippetsSection";
 import { CalendarSection } from "./CalendarSection";
+import { EarningsSection } from "./EarningsSection";
 import { BookingsSection } from "./BookingsSection";
 import { ToastStack, TOAST_DURATION_MS, type ToastItem } from "./Toast";
 import { copyToClipboard } from "./clipboard";
@@ -27,10 +28,12 @@ export function DashboardClient({
   initialTemplates,
   initialSnippets,
   initialBookings,
+  initialEarnings,
 }: {
   initialTemplates: CustomTemplate[];
   initialSnippets: Snippet[];
   initialBookings: Booking[];
+  initialEarnings: Earning[];
 }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const toastIdRef = useRef(0);
@@ -194,6 +197,67 @@ export function DashboardClient({
     [addToast],
   );
 
+  // ── Earnings ─────────────────────────────────────────────────────────
+  // Entered against a day in the calendar; the stats in EarningsSection are
+  // derived from this list, so every mutation writes first and then updates
+  // state from the row the route hands back, rather than guessing at what was
+  // stored. That matters here more than elsewhere: `amount` is a numeric column
+  // the server parses and rounds ("$1,250" → 1250), so the authoritative value
+  // is the one that comes back.
+  const [earnings, setEarnings] = useState<Earning[]>(initialEarnings);
+
+  const addEarning = useCallback(
+    async (date: string, amount: string, note: string) => {
+      try {
+        const res = await fetch("/api/earnings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_date: date, amount, note }),
+        });
+        if (!res.ok) throw new Error(await readError(res, "Could not save the entry."));
+        const { earning } = (await res.json()) as { earning: Earning };
+        setEarnings((prev) => [earning, ...prev]);
+        addToast("Earnings saved.");
+      } catch (err) {
+        addToast(err instanceof Error ? err.message : "Could not save the entry.");
+      }
+    },
+    [addToast],
+  );
+
+  const editEarning = useCallback(
+    async (id: string, amount: string, note: string) => {
+      try {
+        const res = await fetch(`/api/earnings/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount, note }),
+        });
+        if (!res.ok) throw new Error(await readError(res, "Could not update the entry."));
+        const { earning } = (await res.json()) as { earning: Earning };
+        setEarnings((prev) => prev.map((e) => (e.id === id ? earning : e)));
+        addToast("Earnings updated.");
+      } catch (err) {
+        addToast(err instanceof Error ? err.message : "Could not update the entry.");
+      }
+    },
+    [addToast],
+  );
+
+  const deleteEarning = useCallback(
+    async (id: string) => {
+      try {
+        const res = await fetch(`/api/earnings/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(await readError(res, "Could not delete the entry."));
+        setEarnings((prev) => prev.filter((e) => e.id !== id));
+        addToast("Entry deleted.");
+      } catch (err) {
+        addToast(err instanceof Error ? err.message : "Could not delete the entry.");
+      }
+    },
+    [addToast],
+  );
+
   // The other half of TemplatesSection's arm flow: clicking a booking card
   // while a template is armed copies it (with {{name}} filled in) instead
   // of expanding the card.
@@ -244,7 +308,17 @@ export function DashboardClient({
           onEdit={editSnippet}
           onDelete={deleteSnippet}
         />
-        <CalendarSection bookings={bookings} onFocusBooking={focusBooking} />
+        <CalendarSection
+          bookings={bookings}
+          earnings={earnings}
+          onFocusBooking={focusBooking}
+          onAddEarning={addEarning}
+          onEditEarning={editEarning}
+          onDeleteEarning={deleteEarning}
+        />
+        {/* Directly under the calendar, because that's where the numbers get
+            entered — the stats are the read side of the thing above them. */}
+        <EarningsSection earnings={earnings} bookings={bookings} />
         <BookingsSection
           bookings={bookings}
           tab={bookingsTab}

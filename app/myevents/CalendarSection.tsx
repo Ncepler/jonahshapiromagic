@@ -6,7 +6,7 @@
 // highlights that card in the Bookings section below.
 
 import { useMemo, useState } from "react";
-import type { Booking } from "@/lib/db-types";
+import type { Booking, Earning } from "@/lib/db-types";
 import { Section, SectionHeading } from "./Section";
 import { CalendarMonth } from "./CalendarMonth";
 import { CalendarWeek } from "./CalendarWeek";
@@ -16,10 +16,18 @@ type View = "month" | "week";
 
 export function CalendarSection({
   bookings,
+  earnings,
   onFocusBooking,
+  onAddEarning,
+  onEditEarning,
+  onDeleteEarning,
 }: {
   bookings: Booking[];
+  earnings: Earning[];
   onFocusBooking: (id: string) => void;
+  onAddEarning: (date: string, amount: string, note: string) => void;
+  onEditEarning: (id: string, amount: string, note: string) => void;
+  onDeleteEarning: (id: string) => void;
 }) {
   const [view, setView] = useState<View>("month");
   const [reference, setReference] = useState(() => new Date());
@@ -55,10 +63,31 @@ export function CalendarSection({
         }
       />
 
+      {/* Both views take the same day handlers: a day is where earnings get
+          filed, and which view Jonah happens to be in shouldn't decide whether
+          he can file one. */}
       {view === "month" ? (
-        <CalendarMonth reference={reference} setReference={setReference} bookings={accepted} onFocusBooking={onFocusBooking} />
+        <CalendarMonth
+          reference={reference}
+          setReference={setReference}
+          bookings={accepted}
+          earnings={earnings}
+          onFocusBooking={onFocusBooking}
+          onAddEarning={onAddEarning}
+          onEditEarning={onEditEarning}
+          onDeleteEarning={onDeleteEarning}
+        />
       ) : (
-        <CalendarWeek reference={reference} setReference={setReference} bookings={accepted} onFocusBooking={onFocusBooking} />
+        <CalendarWeek
+          reference={reference}
+          setReference={setReference}
+          bookings={accepted}
+          earnings={earnings}
+          onFocusBooking={onFocusBooking}
+          onAddEarning={onAddEarning}
+          onEditEarning={onEditEarning}
+          onDeleteEarning={onDeleteEarning}
+        />
       )}
     </Section>
   );
