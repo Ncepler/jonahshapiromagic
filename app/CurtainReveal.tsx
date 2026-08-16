@@ -5,40 +5,87 @@
 // holding for a beat, then hauled open to reveal the site — and gone from the
 // DOM the moment it finishes.
 //
-// The version this replaces was two solid rectangles sliding apart: it moved,
-// but it read as "two walls," not as cloth. This one is fabric. Each half is a
-// panel of vertical FOLD STRIPS (8–14 on a desktop, 5–7 on a phone) that share
-// one pull but not one timing, so a ripple travels through the cloth as it
-// opens and the leading edge stays ragged instead of ruler-straight.
+// It is a GRAND (traveler) curtain, which is a specific thing and not a generic
+// "two panels slide apart." A traveler hangs from carriers on a track. A pull
+// line is tied to the leading edge of each half; when it is hauled, that edge
+// runs offstage and every carrier behind it is picked up in turn, so the cloth
+// accordions into the wing rather than sliding as a sheet. It never lifts.
+// Four consequences, and they are the whole design of this file:
+//
+//   1. THE TOP LEADS, THE HEM LAGS. Only the top of the curtain is attached to
+//      anything. The hem is loose cloth with mass, dragged along by the fabric
+//      above it, so it trails behind the top edge for the entire pull and is
+//      still crossing the opening after the top has gone. This is the single
+//      biggest tell that something is cloth and not a wall, and it is what the
+//      version this replaces was missing.
+//   2. THE HEM SWAYS WHEN THE PULL STOPS. Its own momentum carries it past
+//      where it was going, once, and it settles.
+//   3. THE PLEATS COMPRESS toward the wing as the half stacks. The visible
+//      fabric gets narrower and the folds crowd together; they don't hold their
+//      spacing on the way out.
+//   4. IT IS HEAVY. Slow to start, builds hard through the middle, lands long.
+//
+// Each half is a panel of vertical FOLD STRIPS (8–14 on a desktop, 5–7 on a
+// phone) that share one pull but not one timing, so a ripple travels through
+// the cloth as it opens and the leading edge stays ragged instead of
+// ruler-straight.
 //
 // Everything that can vary is drawn fresh per page load, the same "no two plays
 // alike" rule the card reveal follows (see CardRevealOverlay.tsx): fold count
 // and individual fold widths, which end of the panel leads the ripple, each
-// fold's own delay / lag / tilt / squeeze, which way the settle wobbles, and
-// which half starts a hair before the other.
+// fold's own delay / lag / hem lag / tilt / squeeze, how deep the hem drags and
+// which way it swings back, and which half starts a hair before the other.
+//
+// ── The four transform layers ───────────────────────────────────────────────
+// Each half is four nested elements, one job each, because two of the jobs are
+// scales about DIFFERENT origins and a single element can only have one
+// transform-origin:
+//
+//   slide   x — the haul. Origin-independent.
+//   hem     skewX about the TOP edge. skewX(θ) displaces a point by y·tan(θ),
+//           so with the origin at the top the top edge does not move at all and
+//           the displacement grows linearly to a maximum at the hem. That is
+//           (1) and (2) above, in one property.
+//   gather  scaleX about the SEAM edge — the small take-up before the pull. It
+//           has to scale about the seam, because scaling this about the wing
+//           would walk the seam edge inward and crack the curtain open before
+//           anything is supposed to move.
+//   stack   scaleX about the WING edge — (3). Pinning the wing edge is what
+//           makes it read as fabric piling up offstage instead of the whole
+//           panel shrinking. Also carries the perspective for the folds, since
+//           the folds are its direct children.
 //
 // ── Why this one can't tear ─────────────────────────────────────────────────
 // The obvious way to build fabric — give every pleat its own independent
 // transform — is the way that fails: two neighbours disagree by more than they
 // overlap and a slit of the live page flashes through the middle of the
-// curtain. An earlier attempt at this page did exactly that. Two properties
-// make it impossible here, both enforced by construction rather than by taste:
+// curtain. An earlier attempt at this page did exactly that. The guarantee here
+// is by construction rather than by taste, and it survives the hem lag because
+// of where the layers sit:
 //
-//   1. The PANEL is opaque velvet in its own right and is the fastest thing in
-//      its half — a strip can only ever lag it, never outrun it. Everything
-//      from the panel's leading edge outward is therefore covered by the panel
-//      no matter what the strips are doing.
-//   2. That leaves only the ripple zone, the part of the strips hanging past
-//      that edge. There, neighbours overlap by OVERLAP_OF_SLOT of a fold width
-//      on each side while the deepest any strip can lag is LAG_OF_SLOT of a
-//      fold width — and 2 × OVERLAP_OF_SLOT > LAG_OF_SLOT, so even a strip at
-//      full lag beside a strip at zero lag still overlaps it. The worst case
-//      the random numbers can produce is still solid cloth.
+//   1. The PANEL FACE is opaque velvet in its own right and is the fastest
+//      thing in its half — a strip can only ever lag it, never outrun it.
+//      Everything from the panel's leading edge outward is therefore covered no
+//      matter what the strips are doing.
+//   2. Three of the four layers above are SHARED by every strip in the half.
+//      Whatever `slide`, `hem` and `gather`/`stack` do, they do to all of them
+//      at once, so none of it can separate one fold from its neighbour. (The
+//      two scales compress the strips' overlaps and their lags by the same
+//      factor, so the ratios below are preserved, not just the raw pixels.)
+//   3. That leaves the per-strip transforms, which is where the ripple lives.
+//      Neighbours overlap by OVERLAP_OF_SLOT of a fold width on each side. A
+//      strip can pull away from its neighbour by at most its own horizontal lag
+//      (LAG_OF_SLOT of a fold) plus its own hem lag (HEM_JITTER_OF_SLOT of a
+//      fold, at the very bottom, zero at the top) — and
+//      LAG_OF_SLOT + HEM_JITTER_OF_SLOT < 2 × OVERLAP_OF_SLOT, so even a strip
+//      at full lag beside a strip at zero lag still overlaps it, at every
+//      height. The worst case the random numbers can produce is still solid
+//      cloth.
 //
-// The margin between those two numbers is the whole design budget: it is what
-// lets a fold hang a full fold-width past its neighbour — enough that the
-// leading edge of the curtain is visibly ragged rather than a ruled line —
-// without ever letting two folds separate.
+// The margin between those numbers is the whole design budget: it is what lets
+// a fold hang a full fold-width past its neighbour, and its hem hang a third of
+// one further still — enough that the leading edge of the curtain is visibly
+// ragged and its hem visibly raggeder — without ever letting two folds separate.
 //
 // ── Rendering before hydration ──────────────────────────────────────────────
 // The curtain has to be closed in the very first painted frame or the page
@@ -49,9 +96,9 @@
 // detail and nothing else, and it happens well inside the opening hold.
 //
 // Motion (the site's animation library) drives every element. Nothing here
-// animates width/left/right — position is translate/scale/rotate only, so the
-// whole open stays on the compositor, and `will-change` is dropped before the
-// overlay unmounts.
+// animates width/left/right — position is translate/scale/rotate/skew only, so
+// the whole open stays on the compositor, and `will-change` is dropped before
+// the overlay unmounts.
 //
 // Stacking: z-900. Above the whole page (so it genuinely covers the site on
 // arrival) and above the mobile warm-veil at z-150, but below the wand cursor
@@ -74,10 +121,15 @@ const ACCENT = "#c9a961"; // antique gold — rod, seam trim, sparks
 // The hold is measured from page load, not from hydration, so a slow connection
 // spends its wait on the loading rather than on top of it.
 const HOLD_MS = 900; // the beat before anything moves
-const GATHER_MS = 200; // phase 1 — the cloth is gathered before the pull
-const PULL_MS = 1520; // phase 2 — the haul
-const SETTLE_MS = 180; // phase 3 — the last of the fabric whips past and settles
-const MOVE_MS = GATHER_MS + PULL_MS + SETTLE_MS; // 1.9s, weighty but not slow
+const GATHER_MS = 240; // phase 1 — the cloth is taken up before the pull
+const PULL_MS = 1400; // phase 2 — the haul, which does two thirds of the travel
+const SETTLE_MS = 820; // phase 3 — the last third, gliding out while the hem
+// swings. Long, and deliberately so: it is a third of the whole open. The hem
+// only trails the top by ~200px out of ~880px of travel, so the window where
+// the top has left the frame and the hem has not is narrow — spending a third
+// of the animation crossing it is what makes the settle something you can
+// actually see rather than a detail that happens off-screen.
+const MOVE_MS = GATHER_MS + PULL_MS + SETTLE_MS; // 2.46s — weighty, not slow
 const TOTAL_MS = HOLD_MS + MOVE_MS;
 const MIN_HOLD_MS = 140; // still a beat, even if hydration ate the whole hold
 
@@ -92,18 +144,18 @@ const STRIP_SETTLE_AT = PULL_MS / STRIP_MS;
 const OVERHANG = 0.03; // fraction of the viewport each panel runs past its edge
 const SLOT_JITTER = 0.12; // ±, how unequal two neighbouring folds may be
 const OVERLAP_OF_SLOT = 0.7; // how far each fold laps over its neighbour
-const LAG_OF_SLOT = 1; // deepest lag, as a fraction of the NARROWEST fold —
-// held under 2 × OVERLAP_OF_SLOT so folds can never pull apart (see the header).
-// This is also where the per-fold speed variance lives: a fold width is around
+const LAG_OF_SLOT = 1; // deepest horizontal lag, as a fraction of the NARROWEST
+// fold. This is where the per-fold speed variance lives: a fold width is around
 // a tenth of the distance a panel travels, so "lags by up to one fold" is the
 // same statement as "runs up to ~8–10% behind" — expressed as a distance,
 // because a distance is what can be bounded against the overlap.
-const GATHER_SQUEEZE = 0.015; // 1.5% inward compression before the pull
+const HEM_JITTER_OF_SLOT = 0.3; // how much further one fold's HEM may hang past
+// its neighbour's. Held so that LAG_OF_SLOT + HEM_JITTER_OF_SLOT (1.3) stays
+// under 2 × OVERLAP_OF_SLOT (1.4) — see the header's no-tear argument.
+const GATHER_SQUEEZE = 0.015; // 1.5% take-up before the pull
 const LAG_START_MAX_MS = 120; // per-fold delay before it starts falling behind
 const TILT_MIN = 2; // deg — each fold's own rotateY through the pull
 const TILT_MAX = 6;
-const WOBBLE_MIN = 2.2; // deg — the settle, back and forth and decaying
-const WOBBLE_MAX = 3.6;
 const SQUEEZE_MAX = 0.018; // scaleX — fabric compressing and stretching
 const PERSPECTIVE = 1200; // px, so the per-fold rotateY reads as depth
 
@@ -115,13 +167,51 @@ const CREASE_MAX = 0.92;
 const RIDGE_MIN = 1.06;
 const RIDGE_MAX = 1.14;
 
+// ── The hem drag ────────────────────────────────────────────────────────────
+// How far behind the top edge the bottom of the cloth runs at the deepest point
+// of the haul, expressed as an angle so it scales with the viewport height, and
+// then capped in px so it can't become absurd on a phone (where half a viewport
+// is only ~190px wide and an unclamped drag would be a third of the screen).
+const HEM_DRAG_MIN = 10; // deg
+const HEM_DRAG_MAX = 14;
+const HEM_MAX_OF_HALF = 0.32; // …but never more than this share of a half-width
+// What the hem keeps once everything has settled. Not zero: the cloth is still
+// hanging off a track that just stopped, so it keeps a little of the lean. It
+// has to be small, though — whatever is left here is fabric still standing in
+// the opening at the end, and `travel` is sized against it.
+const HEM_REST = 0.2;
+// The swing back. Momentum carries the hem past where the pull left it, once,
+// and it decays — this is the beat that separates cloth from wall.
+const HEM_SWAY_MIN = 1.6; // deg
+const HEM_SWAY_MAX = 2.8;
+
+// ── The stack ───────────────────────────────────────────────────────────────
+// How narrow the visible cloth gets as the pleats crowd into the wing. Kept
+// modest on purpose: every percent of compression is also a percent of extra
+// opening (the seam edge retreats as the panel narrows), and past ~10% the half
+// starts reading as shrinking rather than gathering.
+const STACK_MIN = 0.9;
+const STACK_MAX = 0.94;
+// How far the top has travelled by the time the pull proper ends. The remainder
+// is spent during the settle, which is what keeps the lagging hem on screen —
+// and visibly swaying — after the top edge has left it.
+const PULL_REACH = 0.66;
+// Where in the settle the hem swings back and then over, as fractions of the
+// settle's own span. Both are early in it, because they have to happen while
+// there is still cloth in the frame to see swing.
+const SWAY_IN_AT = 0.35;
+const SWAY_BACK_AT = 0.62;
+
 // ── Easing ──────────────────────────────────────────────────────────────────
 type Bezier = [number, number, number, number];
 const OUT_SOFT: Bezier = [0.33, 1, 0.68, 1];
-// The pull. Not linear, not a stock ease-in-out: it leaves slowly (the weight
-// of the cloth), builds hard through the middle, and lands long — the tail is
-// what makes the last of the fabric drift off rather than stop dead.
-const HEAVY: Bezier = [0.7, 0, 0.28, 1];
+// The haul. Not linear, not a stock ease-in-out: it leaves slowly (the weight
+// of the cloth against a standing start), builds through the middle, and lands
+// long — the tail is what makes the last of the fabric drift off rather than
+// stop dead. The first control point is what sets how heavy it feels, and it is
+// possible to overdo: at 0.85 the panel sat still for a second and then crossed
+// two thirds of its travel in 400ms, which reads as a snap, not as weight.
+const HEAVY: Bezier = [0.68, 0, 0.3, 1];
 const SETTLE: Bezier = [0.22, 1, 0.36, 1];
 
 // ── Small random helpers ────────────────────────────────────────────────────
@@ -129,6 +219,7 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min);
 const randInt = (min: number, max: number) => Math.round(rand(min, max));
 const sign = () => (Math.random() < 0.5 ? -1 : 1);
 const secs = (ms: number) => ms / 1000;
+const deg = (radians: number) => (radians * 180) / Math.PI;
 
 /** The palette's oxblood, lightened or darkened — the only colour in the cloth. */
 function shade(hex: string, mult: number) {
@@ -162,11 +253,17 @@ type Strip = {
   lagStart: number;
   /** 0–1 of its own window: when it is furthest behind. */
   lagPeak: number;
+  /** deg of extra skew — how much further THIS fold's hem drags than the
+   *  panel's, so the bottom edge is raggeder than the top. Bounded by
+   *  HEM_JITTER_OF_SLOT; see the header. */
+  hemSkew: number;
+  /** deg — this fold's own swing back, on top of the panel's. */
+  hemSway: number;
+  /** 0–1 nudge to the settle's keyframe times, so the sway ripples along the
+   *  hem instead of the whole bottom edge twitching at once. */
+  swayShift: number;
   tilt: number;
   squeeze: number;
-  wobble: number;
-  /** 0–1 nudge to the settle's keyframe times, so the wobble ripples. */
-  wobbleShift: number;
 };
 
 type PanelPlan = {
@@ -178,6 +275,14 @@ type PanelPlan = {
   travel: number;
   /** px the deepest-lagging fold can hang past the panel's leading edge. */
   ripple: number;
+  /** px the raggedest fold's HEM can hang past that, at the very bottom. */
+  hemRipple: number;
+  /** deg the whole half's hem drags behind its top edge at the deepest point. */
+  hemDrag: number;
+  /** deg the hem swings back past that as the pull lets go. */
+  hemSway: number;
+  /** scaleX the visible cloth compresses to as it stacks into the wing. */
+  stack: number;
   delay: number; // s — the 5–30ms asymmetry between the two halves
   strips: Strip[];
 };
@@ -199,12 +304,13 @@ function buildPanel(
     count: number;
     width: number;
     visible: number;
+    height: number;
     rippleFromSeam: boolean;
-    wobbleDir: number;
+    swayDir: number;
     delay: number;
   },
 ): PanelPlan {
-  const { count, width, visible, rippleFromSeam, wobbleDir, delay } = env;
+  const { count, width, visible, height, rippleFromSeam, swayDir, delay } = env;
   const out = side === "left" ? -1 : 1;
 
   // Fold boundaries across the panel. Unequal widths are most of what stops a
@@ -219,12 +325,27 @@ function buildPanel(
 
   const avgSlot = width / count;
   const minSlot = Math.min(...weights.map((w) => (w / total) * width));
-  // The overlap is taken off the AVERAGE fold and the lag ceiling off the
+  // The overlap is taken off the AVERAGE fold and both lag ceilings off the
   // NARROWEST one, which is the conservative pairing: it makes
-  // 2 × overlap > maxLag true for every fold in the panel, not just for a
-  // typical one, whatever way the width jitter happened to land.
+  // 2 × overlap > maxLag + maxHemLag true for every fold in the panel, not just
+  // for a typical one, whatever way the width jitter happened to land.
   const overlap = avgSlot * OVERLAP_OF_SLOT;
   const maxLag = minSlot * LAG_OF_SLOT;
+  const maxHemLag = minSlot * HEM_JITTER_OF_SLOT;
+  // A per-fold hem lag is set as an ANGLE but budgeted as a DISTANCE, so the
+  // angle is whatever puts `maxHemLag` px of drag at the bottom of this
+  // viewport. Same conversion, one level up, for the panel's own drag.
+  const maxHemSkew = deg(Math.atan(maxHemLag / height));
+
+  // How far the whole half's hem runs behind its top edge. Picked as an angle
+  // (so a tall window drags further, which is what heavy cloth does), then
+  // clamped in px so a phone doesn't get a hem hanging a third of the way
+  // across the screen.
+  const dragPx = Math.min(
+    height * Math.tan((rand(HEM_DRAG_MIN, HEM_DRAG_MAX) * Math.PI) / 180),
+    visible * HEM_MAX_OF_HALF,
+  );
+  const hemDrag = deg(Math.atan(dragPx / height));
 
   // Panel-local x runs wall → seam on the left half and seam → wall on the
   // right, because each panel is pinned to its own side of the screen.
@@ -249,6 +370,11 @@ function buildPanel(
     // no-tear guarantee in the header true for any pair of folds, not just
     // neighbouring ones.
     const profile = 0.58 * ramp + 0.42 * wave;
+    // The hem's raggedness runs on its own wave, a half-turn out of phase with
+    // the horizontal one. If both were driven by `profile` the fold that lags
+    // furthest would also be the one whose hem drags furthest, and the ripple
+    // would read as one wave instead of cloth.
+    const hemProfile = 0.5 + 0.5 * Math.sin(wavePhase + Math.PI + toSeam * waveTurns * Math.PI * 2);
 
     // The end folds sit flush with the panel's own edges; only the boundaries
     // between folds get the overlap, so the closed curtain has a clean seam and
@@ -284,18 +410,26 @@ function buildPanel(
       lag: Math.min(maxLag, maxLag * (0.1 + 0.9 * profile) * rand(0.9, 1.1)),
       lagStart: secs(LAG_START_MAX_MS * profile * rand(0.75, 1)),
       lagPeak: rand(0.4, 0.62),
+      hemSkew: Math.min(maxHemSkew, maxHemSkew * (0.15 + 0.85 * hemProfile) * rand(0.9, 1.1)),
+      hemSway: maxHemSkew * rand(0.3, 0.7) * swayDir,
+      swayShift: rand(-0.03, 0.03),
       // Alternating tilt, so neighbouring folds face fractionally different
       // ways and catch the light differently down the panel.
       tilt: rand(TILT_MIN, TILT_MAX) * (i % 2 === 0 ? 1 : -1),
       squeeze: rand(SQUEEZE_MAX * 0.4, SQUEEZE_MAX),
-      wobble: rand(WOBBLE_MIN, WOBBLE_MAX) * wobbleDir,
-      wobbleShift: rand(-0.02, 0.02),
     });
   }
 
-  // Far enough that the deepest-lagging fold still clears the seam, including
-  // the lag it keeps to the end of its track.
-  const travel = visible + maxLag + 24;
+  const stack = rand(STACK_MIN, STACK_MAX);
+  // Far enough that the last of the cloth clears the seam. Three things are
+  // still standing in the opening when the top edge reaches `travel`: the
+  // deepest-lagging fold (maxLag), its hem's extra drag (maxHemLag), and the
+  // panel's own residual lean (dragPx × HEM_REST). The stack compression is
+  // *pulling the seam edge back* by width × (1 − stack) at the same time, so it
+  // pays for part of that — but it is not subtracted here, because leaving the
+  // margin in is what guarantees the bottom corner is actually gone rather than
+  // finishing a pixel inside the frame.
+  const travel = visible + maxLag + maxHemLag + dragPx * HEM_REST + 24;
 
   return {
     side,
@@ -304,6 +438,10 @@ function buildPanel(
     width,
     travel,
     ripple: maxLag,
+    hemRipple: maxHemLag,
+    hemDrag,
+    hemSway: rand(HEM_SWAY_MIN, HEM_SWAY_MAX) * swayDir,
+    stack,
     delay,
     strips,
   };
@@ -311,6 +449,7 @@ function buildPanel(
 
 function buildPlan(): Plan {
   const vw = window.innerWidth;
+  const vh = window.innerHeight;
   const mobile = window.matchMedia("(max-width: 767px)").matches;
   // Phones get fewer, wider folds: same visual language, a third of the layers.
   const count = mobile ? randInt(5, 7) : randInt(8, 14);
@@ -320,13 +459,13 @@ function buildPlan(): Plan {
   const width = visible + overhang;
 
   const rippleFromSeam = Math.random() < 0.5;
-  const wobbleDir = sign();
+  const swayDir = sign();
   // One half always moves a hair before the other. Perfect sync is the tell
   // that a machine is pulling both ropes.
   const skew = secs(rand(5, 30));
   const leadLeft = Math.random() < 0.5;
 
-  const env = { count, width, visible, rippleFromSeam, wobbleDir };
+  const env = { count, width, visible, height: vh, rippleFromSeam, swayDir };
   const panels = [
     buildPanel("left", { ...env, delay: leadLeft ? 0 : skew }),
     buildPanel("right", { ...env, delay: leadLeft ? skew : 0 }),
@@ -351,7 +490,11 @@ function buildPlan(): Plan {
 export function CurtainReveal() {
   const [shown, setShown] = useState(true);
   const [plan, setPlan] = useState<Plan | null>(null);
-  const panels = useRef<Array<HTMLDivElement | null>>([]);
+  // One ref array per transform layer — see "The four transform layers" above.
+  const slides = useRef<Array<HTMLDivElement | null>>([]);
+  const hems = useRef<Array<HTMLDivElement | null>>([]);
+  const gathers = useRef<Array<HTMLDivElement | null>>([]);
+  const stacks = useRef<Array<HTMLDivElement | null>>([]);
   const strips = useRef<Array<Array<HTMLDivElement | null>>>([[], []]);
   const rod = useRef<HTMLDivElement | null>(null);
   const seam = useRef<HTMLDivElement | null>(null);
@@ -395,7 +538,7 @@ export function CurtainReveal() {
       // draws the whole face of the curtain inward; the panel overhangs its
       // screen edge by OVERHANG so this can't uncover the wall side.
       play(
-        panels.current[pi],
+        gathers.current[pi],
         { scaleX: [1, 1 - GATHER_SQUEEZE, 1] },
         {
           duration: secs(GATHER_MS + PULL_MS * 0.4),
@@ -405,19 +548,83 @@ export function CurtainReveal() {
         },
       );
 
-      // ── Phase 2, the pull ───────────────────────────────────────────────
+      // ── Phase 2, the haul ───────────────────────────────────────────────
       // A small inward tug through the gather, then out and off. The panel is
-      // the fastest thing in its half by construction — see the header.
+      // the fastest thing in its half by construction — see the header. It only
+      // reaches PULL_REACH of its travel by the time the pull proper ends; the
+      // last of it drifts off during the settle, which is what keeps the
+      // lagging hem in frame while it swings.
       play(
-        panels.current[pi],
+        slides.current[pi],
         {
-          x: [0, -p.out * p.width * GATHER_SQUEEZE * 0.4, p.out * p.travel * 0.93, p.out * p.travel],
+          x: [
+            0,
+            -p.out * p.width * GATHER_SQUEEZE * 0.4,
+            p.out * p.travel * PULL_REACH,
+            p.out * p.travel,
+          ],
         },
         {
           duration: secs(MOVE_MS),
           delay: at,
           times: [0, GATHER_AT, SETTLE_AT, 1],
-          ease: [OUT_SOFT, HEAVY, SETTLE],
+          // The last segment is OUT_SOFT rather than the sharper SETTLE: it has
+          // a third of the travel to cover and it has to cover it as a glide,
+          // because this is the stretch the hem is swinging through. SETTLE
+          // front-loads hard enough that the cloth was gone before the swing.
+          ease: [OUT_SOFT, HEAVY, OUT_SOFT],
+        },
+      );
+
+      // ── The hem drag, and its sway ──────────────────────────────────────
+      // The one thing that makes this a curtain and not two panels. Only the
+      // top of the cloth is on the track; the bottom is loose weight being
+      // dragged, so it runs behind for the whole pull, overshoots once when the
+      // pull lets go, and keeps a little of the lean at rest.
+      //
+      // The skew is negated against `out` so the hem trails INTO the covered
+      // side. It shares the haul's keyframe times and easing, which is also the
+      // safety argument: the hem's displacement stays a fixed fraction (~15%)
+      // of how far the top has travelled at every instant, so the bottom corner
+      // can never swing far enough to uncover the wall side of the panel, which
+      // only has OVERHANG to spare.
+      const swayIn = SETTLE_AT + (1 - SETTLE_AT) * SWAY_IN_AT;
+      const swayBack = SETTLE_AT + (1 - SETTLE_AT) * SWAY_BACK_AT;
+      play(
+        hems.current[pi],
+        {
+          skewX: [
+            0,
+            0,
+            -p.out * p.hemDrag,
+            -p.out * (p.hemDrag - p.hemSway),
+            -p.out * (p.hemDrag + p.hemSway * 0.4),
+            -p.out * p.hemDrag * HEM_REST,
+          ],
+        },
+        {
+          duration: secs(MOVE_MS),
+          delay: at,
+          times: [0, GATHER_AT, SETTLE_AT, swayIn, swayBack, 1],
+          ease: [OUT_SOFT, HEAVY, OUT_SOFT, OUT_SOFT, SETTLE],
+        },
+      );
+
+      // ── Phase 3, the stack ──────────────────────────────────────────────
+      // The pleats crowding into the wing. Scaling about the WALL edge is the
+      // whole point: it pins the offstage side, so the fabric piles up there
+      // and the folds visibly close on each other instead of the panel just
+      // getting smaller. It starts at 1 and only ever narrows, and it narrows
+      // toward the side that is already leaving, so it cannot open a gap the
+      // haul wasn't opening anyway.
+      play(
+        stacks.current[pi],
+        { scaleX: [1, 1, p.stack, p.stack] },
+        {
+          duration: secs(MOVE_MS),
+          delay: at,
+          times: [0, GATHER_AT, SETTLE_AT, 1],
+          ease: [OUT_SOFT, HEAVY, OUT_SOFT],
         },
       );
 
@@ -439,23 +646,51 @@ export function CurtainReveal() {
           },
         );
 
-        // ── Phase 3, the settle ───────────────────────────────────────────
-        // The fold turns slightly on its own axis through the pull, then — in
-        // the last breath, while the last of it is still crossing the screen
-        // edge — whips back and forth once and decays. This is the beat that
-        // separates cloth from wall.
-        const w = s.wobble;
-        const k = (t: number) => Math.min(0.999, t + s.wobbleShift);
+        // …and its hem falls behind the panel's hem by its own amount too, and
+        // swings back on its own beat. The panel underneath is already doing
+        // the bulk of the drag; this is the raggedness on top of it, which is
+        // why the amplitudes here are a fraction of a fold width rather than a
+        // fraction of the screen.
+        const k = (t: number) => Math.min(0.999, Math.max(0, t + s.swayShift));
         play(
           el,
           {
-            rotateY: [0, s.tilt, s.tilt, s.tilt + w, s.tilt - w * 0.45, s.tilt + w * 0.15],
+            skewX: [
+              0,
+              -p.out * s.hemSkew,
+              -p.out * (s.hemSkew - s.hemSway),
+              -p.out * (s.hemSkew + s.hemSway * 0.4),
+              -p.out * s.hemSkew * HEM_REST,
+            ],
           },
           {
             duration: secs(STRIP_MS),
             delay: moveAt + p.delay,
-            times: [0, 0.5, k(STRIP_SETTLE_AT), k(0.93), k(0.965), 1],
-            ease: [OUT_SOFT, "linear", OUT_SOFT, OUT_SOFT, OUT_SOFT],
+            // The same two beats the panel's own hem swings on, expressed in
+            // the strips' window instead of the move's, and nudged per fold so
+            // the swing ripples along the bottom edge rather than the whole hem
+            // twitching at once.
+            times: [
+              0,
+              STRIP_SETTLE_AT,
+              k(STRIP_SETTLE_AT + (1 - STRIP_SETTLE_AT) * SWAY_IN_AT),
+              k(STRIP_SETTLE_AT + (1 - STRIP_SETTLE_AT) * SWAY_BACK_AT),
+              1,
+            ],
+            ease: [HEAVY, OUT_SOFT, OUT_SOFT, SETTLE],
+          },
+        );
+
+        // The fold turns slightly on its own axis through the pull and relaxes
+        // out of it as the cloth stacks — the light moving across the pleats.
+        play(
+          el,
+          { rotateY: [0, s.tilt, s.tilt, s.tilt * 0.45] },
+          {
+            duration: secs(STRIP_MS),
+            delay: moveAt + p.delay,
+            times: [0, 0.5, STRIP_SETTLE_AT, 1],
+            ease: [OUT_SOFT, "linear", SETTLE],
           },
         );
 
@@ -526,7 +761,14 @@ export function CurtainReveal() {
     const longest = Math.max(...plan.panels.map((p) => p.delay));
     const done = window.setTimeout(
       () => {
-        for (const el of [...panels.current, ...strips.current.flat()]) {
+        const layers = [
+          ...slides.current,
+          ...hems.current,
+          ...gathers.current,
+          ...stacks.current,
+          ...strips.current.flat(),
+        ];
+        for (const el of layers) {
           if (el) el.style.willChange = "auto";
         }
         setShown(false);
@@ -594,15 +836,15 @@ export function CurtainReveal() {
       {[0, 1].map((pi) => {
         const p = plan?.panels[pi];
         const side = pi === 0 ? "left" : "right";
-        // How far the panel's own overlays reach past its leading edge.
-        const over = p ? -p.ripple : 0;
+        // How far the panel's own overlays reach past its leading edge: the
+        // horizontal ripple, plus the extra the raggedest hem swings out to.
+        const over = p ? -(p.ripple + p.hemRipple) : 0;
         const bleed = side === "left" ? { left: 0, right: over } : { left: over, right: 0 };
         return (
           <div
             key={side}
-            ref={(el) => {
-              panels.current[pi] = el;
-            }}
+            // Layout only — this element never transforms, so `side` and
+            // `width` below stay off the animation entirely.
             className="absolute inset-y-0"
             style={{
               // Before the plan exists — i.e. in the server's markup and every
@@ -610,61 +852,107 @@ export function CurtainReveal() {
               // colour and roughly the same fold pitch.
               [side]: p ? -p.offset : `-${OVERHANG * 100}vw`,
               width: p ? p.width : `${50 + OVERHANG * 100}vw`,
-              background: VELVET_BASE,
-              perspective: `${PERSPECTIVE}px`,
-              perspectiveOrigin: "50% 38%",
-              transformOrigin: side === "left" ? "100% 50%" : "0% 50%",
-              willChange: "transform",
             } as CSSProperties}
           >
-            {p?.strips.map((s, si) => (
+            {/* 1 — the haul */}
+            <div
+              ref={(el) => {
+                slides.current[pi] = el;
+              }}
+              className="absolute inset-0"
+              style={{ willChange: "transform" }}
+            >
+              {/* 2 — the hem drag, skewed about the TOP edge so the top is
+                  pinned and the displacement grows to a maximum at the bottom */}
               <div
-                key={si}
                 ref={(el) => {
-                  strips.current[pi][si] = el;
+                  hems.current[pi] = el;
                 }}
-                className="absolute inset-y-0"
-                style={{
-                  left: s.left,
-                  width: s.width,
-                  background: s.background,
-                  boxShadow: s.boxShadow,
-                  willChange: "transform",
-                }}
-              />
-            ))}
+                className="absolute inset-0"
+                style={{ transformOrigin: "50% 0%", willChange: "transform" }}
+              >
+                {/* 3 — the take-up, about the SEAM edge */}
+                <div
+                  ref={(el) => {
+                    gathers.current[pi] = el;
+                  }}
+                  className="absolute inset-0"
+                  style={{
+                    transformOrigin: side === "left" ? "100% 50%" : "0% 50%",
+                    willChange: "transform",
+                  }}
+                >
+                  {/* 4 — the stack, about the WALL edge. Also the opaque velvet
+                      face and the perspective for the folds inside it. */}
+                  <div
+                    ref={(el) => {
+                      stacks.current[pi] = el;
+                    }}
+                    className="absolute inset-0"
+                    style={{
+                      background: VELVET_BASE,
+                      transformOrigin: side === "left" ? "0% 50%" : "100% 50%",
+                      perspective: `${PERSPECTIVE}px`,
+                      perspectiveOrigin: "50% 38%",
+                      willChange: "transform",
+                    }}
+                  >
+                    {p?.strips.map((s, si) => (
+                      <div
+                        key={si}
+                        ref={(el) => {
+                          strips.current[pi][si] = el;
+                        }}
+                        className="absolute inset-y-0"
+                        style={{
+                          left: s.left,
+                          width: s.width,
+                          background: s.background,
+                          boxShadow: s.boxShadow,
+                          // Its own hem lag pivots on its own top edge, same as
+                          // the panel's.
+                          transformOrigin: "50% 0%",
+                          willChange: "transform",
+                        }}
+                      />
+                    ))}
 
-            {/* Valance shadow under the rod, floor shadow at the hem, and the
-                velvet grain. Panel-level, so they cost one layer each rather
-                than one per fold — and each runs `bleed` px past the leading
-                edge, because the folds hang that far out into the opening and
-                an unshaded, ungrained fringe along the ragged edge is exactly
-                where the eye would catch the trick. */}
-            <div
-              className="absolute top-0"
-              style={{
-                ...bleed,
-                height: "16%",
-                background: "linear-gradient(180deg, rgba(0,0,0,0.6), transparent)",
-              }}
-            />
-            <div
-              className="absolute bottom-0"
-              style={{
-                ...bleed,
-                height: "22%",
-                background: "linear-gradient(0deg, rgba(0,0,0,0.5), transparent)",
-              }}
-            />
-            <div
-              className="absolute inset-y-0"
-              style={{
-                ...bleed,
-                backgroundImage: GRAIN,
-                backgroundSize: "140px 140px",
-                opacity: 0.07,
-              }}
-            />
+                    {/* Valance shadow under the rod, floor shadow at the hem,
+                        and the velvet grain. Panel-level, so they cost one
+                        layer each rather than one per fold — and each runs
+                        `bleed` px past the leading edge, because the folds hang
+                        that far out into the opening and an unshaded, ungrained
+                        fringe along the ragged edge is exactly where the eye
+                        would catch the trick. */}
+                    <div
+                      className="absolute top-0"
+                      style={{
+                        ...bleed,
+                        height: "16%",
+                        background: "linear-gradient(180deg, rgba(0,0,0,0.6), transparent)",
+                      }}
+                    />
+                    <div
+                      className="absolute bottom-0"
+                      style={{
+                        ...bleed,
+                        height: "22%",
+                        background: "linear-gradient(0deg, rgba(0,0,0,0.5), transparent)",
+                      }}
+                    />
+                    <div
+                      className="absolute inset-y-0"
+                      style={{
+                        ...bleed,
+                        backgroundImage: GRAIN,
+                        backgroundSize: "140px 140px",
+                        opacity: 0.07,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
       })}
