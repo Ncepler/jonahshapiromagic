@@ -83,7 +83,12 @@ export type CardRevealOptions = {
   mode: CardRevealMode;
   /** Where the cards come from, in viewport coordinates (the overlay is fixed). */
   origin: { x: number; y: number };
-  /** Fires the moment the cards have the screen completely covered. */
+  /**
+   * Fires the moment the cards have the screen completely covered — the beat
+   * where whatever this reveal is hiding should happen. The cover is opaque
+   * (see the grid in buildRun), so anything done here is genuinely unseen: a
+   * caller can jump the page instantly rather than animate it.
+   */
   onCovered?: (reducedMotion: boolean) => void;
   /** Fires once the cards have fallen away again. */
   onComplete?: (reducedMotion: boolean) => void;
@@ -644,14 +649,22 @@ export function CardRevealOverlay() {
       timers.push(window.setTimeout(fn, seconds * 1000));
     };
 
-    // ── Screen covered: whatever this reveal was hiding happens now ─────────
-    after(run.cover, () => run.onCovered?.(false));
+    const finish = () => {
+      for (const el of [...wraps.current, ...cards.current]) {
+        if (el) el.style.willChange = "auto";
+      }
+      run.onComplete?.(false);
+      busy = false;
+      wraps.current = [];
+      cards.current = [];
+      setRun(null);
+    };
 
     // ── Dissipate ──────────────────────────────────────────────────────────
     // By now every wrapper is back at identity, so a card's local coordinates
     // are its viewport coordinates in both variants and the cards can simply
     // fall straight down out of the frame.
-    after(run.cover + HOLD, () => {
+    const dissipate = () => {
       run.cards.forEach((spec, i) => {
         const el = cards.current[i];
         if (!el) return;
@@ -675,19 +688,14 @@ export function CardRevealOverlay() {
           ),
         );
       });
-    });
 
-    // ── Done ───────────────────────────────────────────────────────────────
-    after(run.cover + HOLD + FALL_MAX, () => {
-      for (const el of [...wraps.current, ...cards.current]) {
-        if (el) el.style.willChange = "auto";
-      }
-      run.onComplete?.(false);
-      busy = false;
-      wraps.current = [];
-      cards.current = [];
-      setRun(null);
-    });
+      // ── Done ─────────────────────────────────────────────────────────────
+      after(FALL_MAX, finish);
+    };
+
+    // ── Screen covered: whatever this reveal was hiding happens now ─────────
+    after(run.cover, () => run.onCovered?.(false));
+    after(run.cover + HOLD, dissipate);
 
     return () => {
       for (const t of timers) window.clearTimeout(t);

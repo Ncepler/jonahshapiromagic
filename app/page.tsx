@@ -27,6 +27,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type MouseEvent,
   type ReactNode,
 } from "react";
 import Image from "next/image";
@@ -36,6 +37,41 @@ import { CardRevealOverlay, triggerCardReveal } from "./CardRevealOverlay";
 import { MagicianCursor } from "./MagicianCursor";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+// ── Every "book" CTA behaves identically ────────────────────────────────────
+// Three links on the page point at the booking form (the hero's "Book the
+// show", the sticky bar's "Book", and the decks section's "Ask about it when
+// you book"). All three run the same card reveal: cards fill the screen from
+// the middle of the viewport, the page jumps to the form behind them, and they
+// only fall away once the page is already sitting on the form. The href stays
+// a real anchor underneath, for no-JS and for middle/modified clicks.
+function bookRevealClick(e: MouseEvent<HTMLAnchorElement>) {
+  // A modified click is the browser's to handle (open in a new tab, etc.) —
+  // leave the plain anchor alone for those.
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+  e.preventDefault();
+  triggerCardReveal({
+    mode: "book",
+    // Dead centre of the screen no matter how far down the page the visitor
+    // is — every one of these buttons is somewhere different, the reveal
+    // isn't.
+    origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+    onCovered: () => {
+      // Instant, never smooth. The cards have the screen completely covered
+      // at this point, so an animated scroll would be 1–2s of motion nobody
+      // can see — and worse, on the long trips (the hero button is ~7000px
+      // from the form) it was still gliding when the cards began to fall,
+      // which reads as the page sliding around behind them. Jumping while
+      // hidden means the form is simply there when they clear.
+      // Explicit "instant" is required: the page sets scroll-behavior: smooth
+      // in globals.css, and "auto" would inherit it.
+      document.getElementById("magician-book")?.scrollIntoView({
+        behavior: "instant",
+        block: "start",
+      });
+    },
+  });
+}
 
 // ── Palette — a dim theater, not a red website (§16a). Picture a stage in a
 // dark house: heavy oxblood curtains, warm light spilling from just behind
@@ -481,26 +517,7 @@ function StickyBar() {
         <a
           href="#magician-book"
           tabIndex={visible ? undefined : -1}
-          onClick={(e) => {
-            // A modified click is the browser's to handle (open in a new tab,
-            // etc.) — leave the plain anchor alone for those.
-            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-            e.preventDefault();
-            // Cards spawn dead centre of the screen no matter how far down the
-            // page the visitor is — the bar is fixed, the reveal is fixed.
-            triggerCardReveal({
-              mode: "book",
-              origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
-              // Fires once the cards have the screen covered, so the jump
-              // happens behind them; under reduced motion it fires instantly,
-              // and an explicit "smooth" would still animate, hence the flag.
-              onCovered: (reduced) =>
-                document.getElementById("magician-book")?.scrollIntoView({
-                  behavior: reduced ? "instant" : "smooth",
-                  block: "start",
-                }),
-            });
-          }}
+          onClick={bookRevealClick}
           // min-h keeps the tap target at 44px on a phone; the bar is 60px
           // tall, so there's room for it without touching the layout
           className="magician-curtain-btn inline-flex min-h-[44px] items-center text-[0.85rem] font-semibold uppercase tracking-[0.1em]"
@@ -589,6 +606,7 @@ function Hero() {
           </p>
           <a
             href="#magician-book"
+            onClick={bookRevealClick}
             className="magician-curtain-btn mt-10 inline-block px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] transition-transform duration-200 hover:scale-[1.03]"
             style={{ background: BG_ELEVATED, color: TEXT, border: `1px solid ${ACCENT}` }}
           >
@@ -835,9 +853,22 @@ function TrickOfTheDay() {
             triggerCardReveal({
               mode: "trick",
               origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
-              // Unchanged from what this button has always done — just held
-              // until the cards have covered the screen and fallen away.
-              onComplete: () => window.open(video, "_blank", "noopener,noreferrer"),
+              onComplete: () => {
+                // Desktop keeps the new tab it has always opened. Phones
+                // don't: a popup only survives if window.open runs inside the
+                // tap itself, and this one runs ~3s later, once the cards have
+                // cleared — so mobile browsers silently swallow it and nothing
+                // happens. Asking for the tab WITHOUT "noopener" is what makes
+                // the difference detectable: the spec makes window.open return
+                // null whenever noopener is set, success or not, so there'd be
+                // nothing to test. With a real handle back, a null means the
+                // popup was genuinely blocked and the trick can open right
+                // here in the tab instead — which on a phone hands off to the
+                // TikTok app the same way tapping any TikTok link does.
+                const tab = window.open(video, "_blank");
+                if (tab) tab.opener = null; // same protection noopener gives
+                else window.location.href = video;
+              },
             });
           }}
           aria-label={`Watch a random trick from ${STAGE_NAME} on TikTok — ${site.tiktokHandle}`}
@@ -1047,6 +1078,7 @@ function TheTakeaway() {
           <div className="mt-8">
             <a
               href="#magician-book"
+              onClick={bookRevealClick}
               className="magician-curtain-btn inline-block px-6 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em]"
               style={{ background: BG_ELEVATED, color: TEXT, border: `1px solid ${ACCENT}` }}
             >
