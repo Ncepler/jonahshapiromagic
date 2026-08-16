@@ -38,14 +38,16 @@ import { CardRevealOverlay, triggerCardReveal } from "./CardRevealOverlay";
 // itself open. Its own file, next to the card reveal, for the same reason:
 // it is a self-contained piece of animation machinery, not page layout.
 import { CurtainReveal } from "./CurtainReveal";
-// The three later transitions, same rule: one file each, all of them mounted
-// once at the bottom of MagicianSite and fired from wherever they belong.
-// transition-kit.ts holds what they share (palette mirror, easing, the
-// mount/trigger registry, the z-index ladder).
-import { SmokeTransition } from "./SmokeTransition";
+// The two later transitions, same rule: one file each, both mounted once at the
+// bottom of MagicianSite and fired from wherever they belong. transition-kit.ts
+// holds what they share (palette mirror, easing, the mount/trigger registry,
+// the z-index ladder).
 import { SpotlightSweepOverlay, triggerSpotlightSweep } from "./SpotlightSweep";
 import { TornPaperOverlay, triggerTornPaper } from "./TornPaperReveal";
 import { MagicianCursor } from "./MagicianCursor";
+// Not a transition — a piece of the pricing section itself. Stage fog rolls in
+// from both wings and sits over the numbers until the visitor taps it away.
+import { PricingFog } from "./PricingFog";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -988,38 +990,45 @@ function WhatItCosts() {
           what you&apos;re planning and I&apos;ll send you a real number.
         </p>
       </RiseFromDark>
-      <div className="mt-14 grid gap-6 md:grid-cols-3">
-        {PACKAGES.map((p, i) => (
-          <RiseFromDark key={p.name} delay={Math.min(i * 0.08, 0.2)}>
-            <div
-              className="pkg-card flex h-full flex-col items-center p-8"
-              style={{
-                background: BG_ELEVATED,
-                border: `1px solid ${hexToRgba(ACCENT, 0.3)}`,
-                borderRadius: 4,
-              }}
-            >
-              <span aria-hidden style={{ color: ACCENT, fontSize: 20, opacity: 0.7 }}>
-                ✦
-              </span>
-              <h3 className="mt-4 text-[20px] leading-[1.2]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-                {p.name}
-              </h3>
-              <p className="mt-3 text-[1.5rem] tracking-[0.04em]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-                {p.price}
-              </p>
-              <p className="mt-4 text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
-                {p.desc}
-              </p>
-            </div>
-          </RiseFromDark>
-        ))}
-      </div>
-      <RiseFromDark delay={0.24}>
-        <p className="mt-10 text-[14px]" style={{ color: TEXT_MUTED }}>
-          Weddings, corporate events, and travel outside the tri-state area are quoted separately.
-        </p>
-      </RiseFromDark>
+      {/* The numbers themselves arrive behind a bank of stage fog — see
+          PricingFog.tsx. Everything above stays clear, so the visitor can read
+          what they're being asked to uncover; the eyebrow's promise of
+          "straight numbers" is the joke the fog is playing against, and one tap
+          settles it. */}
+      <PricingFog>
+        <div className="mt-14 grid gap-6 md:grid-cols-3">
+          {PACKAGES.map((p, i) => (
+            <RiseFromDark key={p.name} delay={Math.min(i * 0.08, 0.2)}>
+              <div
+                className="pkg-card flex h-full flex-col items-center p-8"
+                style={{
+                  background: BG_ELEVATED,
+                  border: `1px solid ${hexToRgba(ACCENT, 0.3)}`,
+                  borderRadius: 4,
+                }}
+              >
+                <span aria-hidden style={{ color: ACCENT, fontSize: 20, opacity: 0.7 }}>
+                  ✦
+                </span>
+                <h3 className="mt-4 text-[20px] leading-[1.2]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+                  {p.name}
+                </h3>
+                <p className="mt-3 text-[1.5rem] tracking-[0.04em]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+                  {p.price}
+                </p>
+                <p className="mt-4 text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+                  {p.desc}
+                </p>
+              </div>
+            </RiseFromDark>
+          ))}
+        </div>
+        <RiseFromDark delay={0.24}>
+          <p className="mt-10 text-[14px]" style={{ color: TEXT_MUTED }}>
+            Weddings, corporate events, and travel outside the tri-state area are quoted separately.
+          </p>
+        </RiseFromDark>
+      </PricingFog>
     </Section>
   );
 }
@@ -1765,26 +1774,6 @@ export default function Page() {
   return <MagicianSite />;
 }
 
-// ── Which sections raise smoke ──────────────────────────────────────────────
-// In page order, and deliberately not every <section> on the page: the hero is
-// excluded (it is the arrival, not a change), and so are the three link/list
-// bands — "Where I've worked", the phrase band and the Instagram block — which
-// are punctuation between sections rather than sections in their own right, and
-// would fire smoke twice within a screen of scrolling.
-//
-// The rest of the rules live in SmokeTransition.tsx: once per section per page
-// load, never on the one the visitor lands on, never under the opening curtain,
-// and never over a transition the visitor actually asked for.
-const SMOKE_SECTIONS = [
-  "magician-experience",
-  "magician-trick",
-  "magician-pricing",
-  "magician-decks",
-  "magician-faq",
-  "magician-about",
-  "magician-book",
-];
-
 function MagicianSite() {
   return (
     // wraps ALL of the magician's content, only this page — see
@@ -1863,13 +1852,13 @@ function MagicianSite() {
           <InstagramBlock />
         </main>
         <MagicianFooter />
-        {/* The four transition overlays. Each is mounted exactly once, renders
+        {/* The three transition overlays. Each is mounted exactly once, renders
             nothing until something fires it, and unmounts itself when it's
             done; the stacking order between them is the LAYER ladder in
             transition-kit.ts. The card reveal is the top of that ladder (9999
             vs. the curtain's 900 and the wand cursor's 998/999) — while it's
-            up, it IS the page. */}
-        <SmokeTransition sections={SMOKE_SECTIONS} />
+            up, it IS the page. (The fog is not one of these: it belongs to the
+            pricing section, is mounted inside it, and only ever covers it.) */}
         <TornPaperOverlay />
         <SpotlightSweepOverlay />
         <CardRevealOverlay />

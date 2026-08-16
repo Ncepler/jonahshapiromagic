@@ -10,16 +10,13 @@
 // CardRevealOverlay.tsx introduced the pattern: a module-level `start` the
 // overlay hands over on mount, plus a `busy` flag so a second click mid-flight
 // is ignored, wrapped in one exported trigger function. createChannel() is that
-// same pattern generalised, so the three transitions added after it — smoke,
-// spotlight, torn paper — share one implementation instead of carrying three
-// copies of it.
+// same pattern generalised, so the transitions added after it — spotlight, torn
+// paper — share one implementation instead of carrying a copy each.
 //
 // The card reveal itself still owns its copy. It is the one registry a shipped
 // interaction already depends on (both "book" CTAs and the trick card route
 // through it), and re-pointing it at this file would be a rewrite of working
-// code for no behavioural gain. What it does export is isCardRevealPlaying(),
-// which is all anything else here needs from it: the smoke has to know when the
-// cards have the screen and stay out of the way.
+// code for no behavioural gain.
 //
 // ── House rules these transitions all follow ────────────────────────────────
 //   · prefers-reduced-motion: reduce → the animation never plays and whatever
@@ -70,10 +67,6 @@ export function hexToRgba(hex: string, alpha: number): string {
 // "elsewhere" are documentation of where those files already sit — they set
 // their own z-index and do not read this object.
 export const LAYER = {
-  /** Smoke: over the page and the sticky bar (100) and the mobile warm veil
-   *  (150), under the opening curtain. It is fog, not a cover — see
-   *  SmokeTransition.tsx. */
-  smoke: 800,
   /** elsewhere — CurtainReveal.tsx */
   curtain: 900,
   /** elsewhere — MagicianCursor.tsx */
@@ -123,8 +116,6 @@ export function isMobile(): boolean {
 }
 
 // ── Channels ────────────────────────────────────────────────────────────────
-const channels: Array<() => boolean> = [];
-
 export type Channel<Run> = {
   /**
    * The overlay component calls this on mount and calls the returned function
@@ -153,7 +144,7 @@ export function createChannel<Run>(): Channel<Run> {
   let start: ((run: Run) => void) | null = null;
   let busy = false;
 
-  const channel: Channel<Run> = {
+  return {
     register(fn) {
       start = fn;
       busy = false;
@@ -173,16 +164,4 @@ export function createChannel<Run>(): Channel<Run> {
     },
     busy: () => busy,
   };
-
-  channels.push(channel.busy);
-  return channel;
-}
-
-/**
- * True while any kit transition is playing. The smoke is the only uninvited
- * one — nobody asked for it, it fires off a scroll position — so it is the one
- * that yields. (Card reveals are asked for by name; they never yield.)
- */
-export function anyTransitionPlaying(): boolean {
-  return channels.some((busy) => busy());
 }
