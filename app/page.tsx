@@ -1033,20 +1033,156 @@ function WhatItCosts() {
   );
 }
 
-// ── The Takeaway — branded decks as a booking add-on, not a store. There's no
-// cart, designer, or quantity picker on purpose: the ask is "mention it when
-// you book," and Jonah arranges the print himself. No vendor is named as a
-// partner or sponsor. No real deck photos exist yet, so the left column is a
-// labeled stylized mock (§10), not a fake product shot.
-// The Shuffled Ink link is not an affiliate or partner link — just a pointer
-// to a printer that does this well, kept deliberately secondary (a text aside
-// under the booking button) so it can't pull a visitor off-page mid-funnel.
-const DECK_PRINTER_URL = "https://shuffledink.com";
-const DECK_POINTS = [
-  "Casino-quality stock. Real snap, real weight.",
-  "Custom back design — logo, monogram, or event artwork.",
-  "Full decks, tuck box included. Minimum order 15.",
+// ── The Takeaway — custom decks, reframed as somebody else's idea ────────────
+// This section used to sell a booking add-on: "mention it when you book and
+// I'll handle it," with a printer linked underneath. It isn't an add-on and it
+// never was. Jonah has nothing to do with the ordering, takes no cut, and
+// arranges nothing — a host who wants custom decks designs and buys them, and
+// he performs with whatever they hand him on the day.
+//
+// So the section's job is to describe a thing the visitor could do, and then
+// get out of the way. Three consequences:
+//
+//   · No CTA. A "book" button here would put the decks back inside the funnel
+//     and re-imply that they're something to arrange with him. Every other
+//     section already has one.
+//   · No printer named, and no link out. Naming one reads as a partnership;
+//     linking out mid-page pulls a visitor off it. "Any custom playing-card
+//     printer" is the whole instruction and it's true.
+//   · The three steps are the content. "You design it / you order it / you hand
+//     them to me" is the entire arrangement, and stating it plainly is what
+//     stops it reading as an upsell.
+//
+// The three deck backs are drawn in CSS. No real client decks exist and none
+// are invented (§12/§16f) — they're captioned as mockups, and the "clients"
+// on them are obvious placeholders rather than plausible company names.
+type DeckMock = {
+  /** What kind of deck this is an example of. */
+  label: string;
+  tilt: number;
+  render: ReactNode;
+};
+
+/** Shared frame for a deck back: card proportions, a gold inner rule, and the
+ *  elevated card ground the rest of the page uses for surfaces. */
+function DeckBack({ children, tilt }: { children: ReactNode; tilt: number }) {
+  return (
+    <div
+      className="deck-mock relative shrink-0"
+      style={{
+        width: 150,
+        aspectRatio: "5 / 7",
+        borderRadius: 10,
+        transform: `rotate(${tilt}deg)`,
+        background: `linear-gradient(165deg, ${BG_ELEVATED}, ${BG})`,
+        border: `1px solid ${hexToRgba(ACCENT, 0.35)}`,
+        boxShadow: "0 18px 40px rgba(0,0,0,.55)",
+      }}
+    >
+      <div
+        className="absolute flex flex-col items-center justify-center text-center"
+        style={{ inset: 9, borderRadius: 5, border: `1px solid ${hexToRgba(ACCENT, 0.28)}` }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const DECK_MOCKS: DeckMock[] = [
+  {
+    label: "A wedding monogram",
+    tilt: -7,
+    render: (
+      <>
+        <span
+          className="text-[34px] leading-none"
+          style={{ color: ACCENT, fontFamily: DISPLAY }}
+        >
+          A&nbsp;&amp;&nbsp;R
+        </span>
+        <span
+          aria-hidden
+          className="my-2 block"
+          style={{ width: 46, height: 1, background: hexToRgba(ACCENT, 0.5) }}
+        />
+        <span className="text-[9px] uppercase tracking-[0.28em]" style={{ color: TEXT_MUTED }}>
+          Their date
+        </span>
+      </>
+    ),
+  },
+  {
+    label: "A company logo",
+    tilt: 3,
+    render: (
+      <>
+        {/* A mark, deliberately abstract — a real-looking logo here would read
+            as a real client. */}
+        <span
+          aria-hidden
+          className="mb-3 block"
+          style={{
+            width: 34,
+            height: 34,
+            border: `2px solid ${hexToRgba(ACCENT, 0.75)}`,
+            transform: "rotate(45deg)",
+          }}
+        />
+        <span
+          className="text-[13px] uppercase leading-[1.3] tracking-[0.2em]"
+          style={{ color: TEXT, fontFamily: DISPLAY }}
+        >
+          Your
+          <br />
+          logo
+        </span>
+      </>
+    ),
+  },
+  {
+    label: "A photo",
+    tilt: 8,
+    render: (
+      <>
+        {/* Stands in for a photograph without pretending to be one — a real
+            image would be a picture of somebody, and nobody has given a
+            picture of themselves to this page. */}
+        <span
+          aria-hidden
+          className="mb-3 block w-full"
+          style={{
+            height: "52%",
+            borderRadius: 3,
+            background: `linear-gradient(150deg, ${hexToRgba(ACCENT, 0.3)}, ${CURTAIN} 55%, ${BG} 100%)`,
+          }}
+        />
+        <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: TEXT_MUTED }}>
+          Your photo
+        </span>
+      </>
+    ),
+  },
 ];
+
+const DECK_STEPS: Array<{ step: string; title: string; body: string }> = [
+  {
+    step: "01",
+    title: "You design it",
+    body: "Whatever you want on the back — a logo, a monogram, a photo from the engagement shoot.",
+  },
+  {
+    step: "02",
+    title: "You order it",
+    body: "Any custom playing-card printer will run them. You pick the stock, the finish, and how many.",
+  },
+  {
+    step: "03",
+    title: "You hand them to me",
+    body: "Give me the decks when I get there and I'll work the room with them all night.",
+  },
+];
+
 function TheTakeaway() {
   return (
     <Section id="magician-decks">
@@ -1055,93 +1191,86 @@ function TheTakeaway() {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-4px); }
         }
-        .deck-mock { animation: deck-float 4s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) { .deck-mock { animation: none; } }
-        .deck-ask:hover { color: ${ACCENT}; }
+        /* The float rides on top of each card's own rotation, so it animates a
+           custom property the transform reads rather than the transform itself
+           — otherwise the keyframe would overwrite the tilt and the spread
+           would snap flat the moment it started. */
+        @property --deck-lift { syntax: '<length>'; inherits: false; initial-value: 0px; }
+        @keyframes deck-lift { 0%, 100% { --deck-lift: 0px; } 50% { --deck-lift: -5px; } }
+        .deck-mock { animation: deck-lift 4.5s ease-in-out infinite; translate: 0 var(--deck-lift); }
+        .deck-mock:nth-child(2) { animation-delay: -1.5s; }
+        .deck-mock:nth-child(3) { animation-delay: -3s; }
+        @media (prefers-reduced-motion: reduce) { .deck-mock { animation: none; translate: none; } }
       `}</style>
       <RiseFromDark className="text-center">
         <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
-          — The Takeaway —
+          — Totally Optional —
         </span>
         <h2 className="mx-auto mt-4 max-w-2xl text-[34px] uppercase leading-[1.05] md:text-[50px]" style={{ color: TEXT, fontFamily: DISPLAY }}>
-          Branded decks. The souvenir nobody throws out.
+          Custom decks, if you want them.
         </h2>
         <p className="mx-auto mt-5 max-w-[640px] text-[15px] leading-[1.7]" style={{ color: TEXT_MUTED }}>
-          Add a custom deck to your booking — your logo, event date, or wedding
-          monogram on the back of every card. Guests take them home. They
-          don&apos;t get tossed like a pen or a keychain. Every deck is
-          casino-quality, printed to order. Mention it when you book and
-          I&apos;ll handle it.
+          Some hosts like to order a custom deck for their event — their logo, a
+          photo, whatever they want, printed on real playing cards. Guests take
+          them home afterward, so it&apos;s a keepsake with your branding
+          literally in everyone&apos;s hands.
         </p>
       </RiseFromDark>
-      <div className="mt-14 grid items-center gap-12 md:grid-cols-2 md:gap-16">
-        <RiseFromDark className="flex justify-center">
-          <div
-            className="deck-mock flex flex-col items-center justify-between py-8"
-            style={{
-              width: 240,
-              height: 336,
-              borderRadius: 10,
-              background: BG_ELEVATED,
-              border: `1px solid ${hexToRgba(ACCENT, 0.4)}`,
-              boxShadow: `inset 0 0 40px ${hexToRgba(ACCENT, 0.07)}`,
-            }}
-          >
-            <span aria-hidden style={{ color: hexToRgba(ACCENT, 0.3), fontSize: 80, lineHeight: 1 }}>
-              ✦
-            </span>
-            <div className="text-center" style={{ color: TEXT, fontFamily: DISPLAY }}>
-              <span className="block text-[1.5rem] font-medium tracking-[0.3em]">YOUR</span>
-              <span className="block text-[1.5rem] font-medium tracking-[0.3em]">LOGO</span>
+
+      {/* The examples. Captioned as mockups directly underneath, because a row
+          of finished-looking deck backs otherwise reads as a portfolio of work
+          that was actually done for someone. */}
+      <RiseFromDark delay={0.1} className="mt-14">
+        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+          {DECK_MOCKS.map((deck) => (
+            <div key={deck.label} className="flex flex-col items-center gap-3">
+              <DeckBack tilt={deck.tilt}>{deck.render}</DeckBack>
+              <span className="text-[12px]" style={{ color: TEXT_MUTED }}>
+                {deck.label}
+              </span>
             </div>
-            <span className="text-[11px] tracking-[0.3em]" style={{ color: TEXT_MUTED }}>
-              HERE
-            </span>
-          </div>
-        </RiseFromDark>
-        <RiseFromDark delay={0.1}>
-          <ul className="space-y-5">
-            {DECK_POINTS.map((point) => (
-              <li key={point} className="flex gap-4 text-[16px] leading-[1.6]" style={{ color: TEXT }}>
-                <span aria-hidden className="shrink-0" style={{ color: ACCENT }}>
-                  ✦
-                </span>
-                {point}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-8 max-w-md text-[14px] leading-[1.7]" style={{ color: TEXT_MUTED }}>
-            Corporate events use them as branded gifts. Weddings use them as
-            favors. Guests actually keep them. Pricing depends on quantity and
-            finish — usually $3 to $6 per deck at typical event sizes.
-          </p>
-          {/* Booking is the primary action here. The printer link used to sit
-              beside it at equal weight, which asked a visitor to choose
-              between two things and sent half of them off-site in the middle
-              of the funnel. It's an aside below the button now. */}
-          <div className="mt-8">
-            <a
-              href="#magician-book"
-              onClick={bookRevealClick}
-              className="magician-curtain-btn inline-block px-6 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em]"
-              style={{ background: BG_ELEVATED, color: TEXT, border: `1px solid ${ACCENT}` }}
+          ))}
+        </div>
+        <p className="mt-8 text-center text-[13px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+          Mockups, to show the idea — these aren&apos;t real decks anyone
+          ordered.
+        </p>
+      </RiseFromDark>
+
+      {/* Three steps, and Jonah is only in the third one. That's the point of
+          the section. */}
+      <RiseFromDark delay={0.16} className="mt-16">
+        <h3
+          className="text-center text-[13px] font-semibold uppercase tracking-[0.2em]"
+          style={{ color: ACCENT }}
+        >
+          How it works
+        </h3>
+        <ol className="mx-auto mt-8 grid max-w-[900px] gap-6 md:grid-cols-3">
+          {DECK_STEPS.map((s) => (
+            <li
+              key={s.step}
+              className="p-6"
+              style={{ background: BG_ELEVATED, border: `1px solid ${BORDER}`, borderRadius: 4 }}
             >
-              Ask about it when you book
-            </a>
-            <div className="mt-3">
-              <a
-                href={DECK_PRINTER_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="deck-ask inline-flex min-h-[44px] items-center text-[0.8rem]"
-                style={{ color: TEXT_MUTED, transition: "color 200ms ease-out" }}
-              >
-                Or design one yourself ↗
-              </a>
-            </div>
-          </div>
-        </RiseFromDark>
-      </div>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: TEXT_MUTED }}>
+                {s.step}
+              </span>
+              <p className="mt-2 text-[19px] leading-[1.2]" style={{ color: TEXT, fontFamily: DISPLAY }}>
+                {s.title}
+              </p>
+              <p className="mt-2 text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+                {s.body}
+              </p>
+            </li>
+          ))}
+        </ol>
+        <p className="mx-auto mt-10 max-w-[620px] text-center text-[15px] leading-[1.7]" style={{ color: TEXT }}>
+          That&apos;s the whole thing. Nothing to arrange with me beforehand,
+          nothing extra to pay me for it, and it doesn&apos;t change anything
+          about the booking.
+        </p>
+      </RiseFromDark>
     </Section>
   );
 }
