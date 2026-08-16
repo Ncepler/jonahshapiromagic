@@ -166,6 +166,19 @@ function prefersReducedMotion() {
 }
 
 /**
+ * True while a reveal is in flight — i.e. while the cards own the screen.
+ *
+ * Read by SmokeTransition.tsx, which fires off scroll position rather than off
+ * a click and so has to stay out of the way of anything the visitor actually
+ * asked for. (The "book" CTAs jump the page to the booking form while the cards
+ * cover it, which lands that section in the viewport as a "section change" the
+ * visitor never scrolled to.)
+ */
+export function isCardRevealPlaying(): boolean {
+  return busy;
+}
+
+/**
  * Play a card reveal, then run the action it is covering for.
  *
  * If the visitor asked for reduced motion, or the overlay isn't mounted, the

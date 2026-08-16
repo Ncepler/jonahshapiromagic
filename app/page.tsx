@@ -38,6 +38,13 @@ import { CardRevealOverlay, triggerCardReveal } from "./CardRevealOverlay";
 // itself open. Its own file, next to the card reveal, for the same reason:
 // it is a self-contained piece of animation machinery, not page layout.
 import { CurtainReveal } from "./CurtainReveal";
+// The three later transitions, same rule: one file each, all of them mounted
+// once at the bottom of MagicianSite and fired from wherever they belong.
+// transition-kit.ts holds what they share (palette mirror, easing, the
+// mount/trigger registry, the z-index ladder).
+import { SmokeTransition } from "./SmokeTransition";
+import { SpotlightSweepOverlay, triggerSpotlightSweep } from "./SpotlightSweep";
+import { TornPaperOverlay, triggerTornPaper } from "./TornPaperReveal";
 import { MagicianCursor } from "./MagicianCursor";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -817,7 +824,7 @@ const TIKTOK_VIDEO_URLS = [
 
 function TrickOfTheDay() {
   return (
-    <Section className="text-center">
+    <Section className="text-center" id="magician-trick">
       <RiseFromDark>
         <span className="text-[13px] font-semibold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
           — Tonight&apos;s Showing —
@@ -854,25 +861,37 @@ function TrickOfTheDay() {
             // fixed, so the button's viewport rect IS the origin — no scroll
             // offset to add.
             const rect = e.currentTarget.getBoundingClientRect();
-            triggerCardReveal({
-              mode: "trick",
-              origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
-              onComplete: () => {
-                // Desktop keeps the new tab it has always opened. Phones
-                // don't: a popup only survives if window.open runs inside the
-                // tap itself, and this one runs ~3s later, once the cards have
-                // cleared — so mobile browsers silently swallow it and nothing
-                // happens. Asking for the tab WITHOUT "noopener" is what makes
-                // the difference detectable: the spec makes window.open return
-                // null whenever noopener is set, success or not, so there'd be
-                // nothing to test. With a real handle back, a null means the
-                // popup was genuinely blocked and the trick can open right
-                // here in the tab instead — which on a phone hands off to the
-                // TikTok app the same way tapping any TikTok link does.
-                const tab = window.open(video, "_blank");
-                if (tab) tab.opener = null; // same protection noopener gives
-                else window.location.href = video;
-              },
+            const origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+            // The house lights drop and a spotlight swings in and hits this
+            // card; the hit is what throws the cards. Neither the card reveal
+            // below nor the TikTok handoff under it changed — the spotlight is
+            // a gate in front of both, and under reduced motion it fires its
+            // callback immediately, so this is the same click it always was.
+            triggerSpotlightSweep({
+              target: origin,
+              onLanded: () =>
+                triggerCardReveal({
+                  mode: "trick",
+                  origin,
+                  onComplete: () => {
+                    // Desktop keeps the new tab it has always opened. Phones
+                    // don't: a popup only survives if window.open runs inside
+                    // the tap itself, and this one runs several seconds later,
+                    // once the cards have cleared — so mobile browsers silently
+                    // swallow it and nothing happens. Asking for the tab
+                    // WITHOUT "noopener" is what makes the difference
+                    // detectable: the spec makes window.open return null
+                    // whenever noopener is set, success or not, so there'd be
+                    // nothing to test. With a real handle back, a null means
+                    // the popup was genuinely blocked and the trick can open
+                    // right here in the tab instead — which on a phone hands
+                    // off to the TikTok app the same way tapping any TikTok
+                    // link does.
+                    const tab = window.open(video, "_blank");
+                    if (tab) tab.opener = null; // same protection noopener gives
+                    else window.location.href = video;
+                  },
+                }),
             });
           }}
           aria-label={`Watch a random trick from ${STAGE_NAME} on TikTok — ${site.tiktokHandle}`}
@@ -1401,7 +1420,20 @@ function Booking() {
       });
       // On failure the form stays exactly as it was, fields and all — nobody
       // should have to retype an event brief because a request timed out.
-      setState(res.ok ? "ok" : "err");
+      if (!res.ok) {
+        setState("err");
+        return;
+      }
+      // Success doesn't swap the form out, it TEARS it up: the transition
+      // clones what is on screen right now, rips the clone in half and throws
+      // the pieces off, and the confirmation underneath is what's left. The
+      // swap itself still happens in onTorn — with the clones already covering
+      // the form in the same painted frame, so nothing flickers. Under reduced
+      // motion onTorn fires immediately and this is the plain swap it was.
+      triggerTornPaper({
+        node: formWrapRef.current,
+        onTorn: () => setState("ok"),
+      });
     } catch {
       setState("err");
     }
@@ -1452,9 +1484,14 @@ function Booking() {
             {state === "ok" ? (
               <motion.div
                 role="status"
-                initial={reduced ? false : { opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: EASE }}
+                // It comes up underneath the two halves of the form while they
+                // are still flying off (see TornPaperReveal.tsx) — hence the
+                // scale rather than the small rise it used when it was a plain
+                // swap, and the beat of delay so it arrives with the tear
+                // rather than ahead of it.
+                initial={reduced ? false : { opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.7, delay: reduced ? 0 : 0.18, ease: EASE }}
                 className="flex flex-col items-center justify-center px-6 text-center"
                 // holds the space the form was occupying a moment ago
                 style={{ minHeight: formHeight ?? undefined }}
@@ -1715,6 +1752,26 @@ export default function Page() {
   return <MagicianSite />;
 }
 
+// ── Which sections raise smoke ──────────────────────────────────────────────
+// In page order, and deliberately not every <section> on the page: the hero is
+// excluded (it is the arrival, not a change), and so are the three link/list
+// bands — "Where I've worked", the phrase band and the Instagram block — which
+// are punctuation between sections rather than sections in their own right, and
+// would fire smoke twice within a screen of scrolling.
+//
+// The rest of the rules live in SmokeTransition.tsx: once per section per page
+// load, never on the one the visitor lands on, never under the opening curtain,
+// and never over a transition the visitor actually asked for.
+const SMOKE_SECTIONS = [
+  "magician-experience",
+  "magician-trick",
+  "magician-pricing",
+  "magician-decks",
+  "magician-faq",
+  "magician-about",
+  "magician-book",
+];
+
 function MagicianSite() {
   return (
     // wraps ALL of the magician's content, only this page — see
@@ -1793,9 +1850,15 @@ function MagicianSite() {
           <InstagramBlock />
         </main>
         <MagicianFooter />
-        {/* Above everything else on the page (9999 vs. the curtain's 900 and
-            the wand cursor's 998/999) — while it's up, it IS the page. Renders
-            nothing until a CTA fires it. */}
+        {/* The four transition overlays. Each is mounted exactly once, renders
+            nothing until something fires it, and unmounts itself when it's
+            done; the stacking order between them is the LAYER ladder in
+            transition-kit.ts. The card reveal is the top of that ladder (9999
+            vs. the curtain's 900 and the wand cursor's 998/999) — while it's
+            up, it IS the page. */}
+        <SmokeTransition sections={SMOKE_SECTIONS} />
+        <TornPaperOverlay />
+        <SpotlightSweepOverlay />
         <CardRevealOverlay />
       </div>
     </MagicianCursor>
