@@ -95,8 +95,9 @@ const SANS = "var(--font-tight)"; // clean quiet body sans
 const STAGE_NAME = "Shap Shufflz";
 const NAME = "Jonah Shapiro";
 // Phone, email, and the Instagram handle/URL all live in site-config.ts —
-// they're still placeholders, and the point of the config is that swapping
-// them for real values is a one-file edit. Import `site` and read from it.
+// phone is still a placeholder; email and Instagram are real. The point of
+// the config is that swapping any of them is a one-file edit. Import `site`
+// and read from it.
 const AREA = "Based in New York City — available across the tri-state area";
 
 const wrap = "mx-auto w-full max-w-[1160px] px-6 md:px-16";
@@ -1212,9 +1213,55 @@ function validateBooking(data: FormData): FieldErrors {
   return errors;
 }
 
+// What the copy-for-email button reconstructs from the form once a submit
+// fails — kept as its own type so onSubmit and the error state agree on shape.
+type BookingAttempt = {
+  name: string;
+  email: string;
+  event_type: string;
+  date: string;
+  venue: string;
+  headcount: string;
+  notes: string;
+};
+
+// input[type=date] gives "YYYY-MM-DD". Building the Date from its parts
+// (rather than `new Date(iso)`, which parses as UTC midnight) keeps the
+// printed day from slipping backward in timezones behind UTC.
+function formatBookingDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+// The plain-English recap a visitor can paste into an email if the booking
+// request itself failed to send. Professional but conversational — this is
+// standing in for a sentence someone would actually type.
+function bookingAttemptToEmailText(a: BookingAttempt): string {
+  const lines: string[] = [];
+  lines.push(`Hi, my name is ${a.name || "[your name]"} and my email is ${a.email || "[your email]"}.`);
+  const eventType = a.event_type || "event";
+  const where = a.venue ? ` at ${a.venue}` : "";
+  lines.push(
+    a.date
+      ? `On ${formatBookingDate(a.date)}, I'm having a ${eventType}${where}.`
+      : `I'm having a ${eventType}${where}.`
+  );
+  if (a.headcount) lines.push(`Expecting around ${a.headcount} guests.`);
+  if (a.notes) lines.push(a.notes);
+  lines.push("Let me know if you have availability!");
+  return lines.join(" ");
+}
+
 function Booking() {
   const [state, setState] = useState<"idle" | "sending" | "ok" | "err">("idle");
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [lastAttempt, setLastAttempt] = useState<BookingAttempt | null>(null);
+  const [copied, setCopied] = useState(false);
   // Optional add-on interest from the Takeaway section above. Controlled so
   // the box can be painted in the site's palette; the real <input> stays in
   // the DOM (visually hidden) so it keeps keyboard focus and screen readers.
@@ -1257,28 +1304,44 @@ function Booking() {
       return;
     }
 
+    const attempt: BookingAttempt = {
+      name: String(data.get("name") ?? ""),
+      email: String(data.get("email") ?? ""),
+      event_type: String(data.get("event_type") ?? ""),
+      date: String(data.get("date") ?? ""),
+      venue: String(data.get("venue") ?? ""),
+      headcount: String(data.get("headcount") ?? ""),
+      notes: String(data.get("notes") ?? ""),
+    };
+    // Kept around so the error state can offer a "copy info for email"
+    // fallback without asking the visitor to retype what they just wrote.
+    setLastAttempt(attempt);
+    setCopied(false);
+
     setFormHeight(formWrapRef.current?.getBoundingClientRect().height ?? null);
     setState("sending");
     try {
       const res = await fetch("/api/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: String(data.get("name") ?? ""),
-          email: String(data.get("email") ?? ""),
-          event_type: String(data.get("event_type") ?? ""),
-          date: String(data.get("date") ?? ""),
-          venue: String(data.get("venue") ?? ""),
-          headcount: String(data.get("headcount") ?? ""),
-          notes: String(data.get("notes") ?? ""),
-          branded_decks: wantsDecks,
-        }),
+        body: JSON.stringify({ ...attempt, branded_decks: wantsDecks }),
       });
       // On failure the form stays exactly as it was, fields and all — nobody
       // should have to retype an event brief because a request timed out.
       setState(res.ok ? "ok" : "err");
     } catch {
       setState("err");
+    }
+  };
+
+  const copyEmailInfo = async () => {
+    if (!lastAttempt) return;
+    try {
+      await navigator.clipboard.writeText(bookingAttemptToEmailText(lastAttempt));
+      setCopied(true);
+    } catch {
+      // Clipboard access can be denied by the browser; the button just stays
+      // as-is so the visitor can select and copy the text themselves.
     }
   };
 
@@ -1462,18 +1525,33 @@ function Booking() {
                   )}
                 </div>
                 {state === "err" && (
-                  <motion.p
+                  <motion.div
                     role="alert"
                     initial={reduced ? false : { opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-[14px] leading-[1.6]"
-                    style={{ color: TEXT_MUTED }}
+                    className="space-y-3"
                   >
-                    Something went wrong. Try again, or just text me at{" "}
-                    <a href={site.phoneHref} className="underline underline-offset-2" style={{ color: TEXT_MUTED }}>
-                      {site.phone}
-                    </a>
-                  </motion.p>
+                    <p className="text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
+                      Something went wrong. Try again, or just email me at{" "}
+                      <a href={`mailto:${site.email}`} className="underline underline-offset-2" style={{ color: TEXT_MUTED }}>
+                        {site.email}
+                      </a>
+                      .
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={copyEmailInfo}
+                        className="px-4 py-2 text-[13px] font-semibold uppercase tracking-[0.06em]"
+                        style={{ background: BG_ELEVATED, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: 4 }}
+                      >
+                        {copied ? "Copied ✓" : "Copy information for email"}
+                      </button>
+                      <span className="text-[13px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
+                        Pastes a ready-to-send summary of what you entered.
+                      </span>
+                    </div>
+                  </motion.div>
                 )}
                 <p className="text-center text-[14px] leading-[1.6]" style={{ color: TEXT_MUTED }}>
                   I read every message. You&apos;ll hear back within 24 hours — if your
@@ -1490,7 +1568,7 @@ function Booking() {
 
 // ── Instagram — a link block, not a section: minimal padding, no eyebrow,
 // no headline. Sits between the booking form and the footer. Handle + URL
-// are still placeholders; both come from site-config.ts. ───────────────────
+// come from site-config.ts. ───────────────────────────────────────────────
 function InstagramBlock() {
   return (
     <section className="relative w-full py-[40px] md:py-[56px]" style={{ background: BG }}>

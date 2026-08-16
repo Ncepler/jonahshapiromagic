@@ -3,15 +3,15 @@
 export const siteConfig = {
   phone: "TODO_REAL_PHONE",           // currently (917) 555-0199 — fake 555 number
   phoneHref: "tel:TODO_REAL_PHONE",
-  email: "TODO_REAL_EMAIL",           // currently hello@jonahshapiro.com — domain may not be owned
-  instagramHandle: "TODO_REAL_IG_HANDLE",  // currently @jonahshapiro.magic — unverified
-  instagramUrl: "TODO_REAL_IG_URL",
+  email: "jonahshapiromagic@gmail.com",
+  instagramHandle: "@shap_shufflz_magic",
+  instagramUrl: "https://www.instagram.com/shap_shufflz_magic",
   tiktokHandle: "@shap_shufflz_magic",     // confirmed correct
   tiktokUrl: "https://www.tiktok.com/@shap_shufflz_magic",
   // Where booking-form submissions get emailed (app/api/book/route.ts).
   // Never rendered on the page — this one has no display fallback, so an
   // unreplaced value makes the route refuse to pretend it delivered.
-  bookingEmail: "TODO_REAL_BOOKING_EMAIL",
+  bookingEmail: "jonahshapiromagic@gmail.com",
 };
 
 // ── Display fallbacks ───────────────────────────────────────────────────────
