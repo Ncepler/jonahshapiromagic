@@ -191,7 +191,7 @@ function skinFor(mode: CardRevealMode): Skin {
       faceBorder: "rgba(20,10,6,0.22)",
       redInk: "#b02a2a",
       blackInk: "#16100c",
-      shadow: "0 18px 46px rgba(0,0,0,0.55)",
+      shadow: "0 16px 40px rgba(0,0,0,0.55)",
     };
   }
   // mode "trick" — read the system color scheme now, at click time, not once
@@ -203,14 +203,14 @@ function skinFor(mode: CardRevealMode): Skin {
         faceBorder: "rgba(255,255,255,0.18)",
         redInk: "rgba(255,255,255,0.7)",
         blackInk: "rgba(255,255,255,0.7)",
-        shadow: "0 18px 46px rgba(0,0,0,0.72)",
+        shadow: "0 16px 40px rgba(0,0,0,0.72)",
       }
     : {
         faceBg: "linear-gradient(158deg, #ffffff 0%, #f1f1f4 100%)",
         faceBorder: "rgba(12,12,16,0.18)",
         redInk: "#17161a",
         blackInk: "#17161a",
-        shadow: "0 18px 46px rgba(0,0,0,0.38)",
+        shadow: "0 16px 40px rgba(0,0,0,0.38)",
       };
 }
 
@@ -479,12 +479,13 @@ function initialTransform(t: Track) {
 function CardFace({ run, spec }: { run: Run; spec: CardSpec }) {
   const w = run.width;
   const radius = Math.max(6, w * 0.045);
+  // No `overflow: hidden` — backgrounds already clip to border-radius, so the
+  // clip would be pure cost on ~90 composited layers for no visual difference.
   const shell: CSSProperties = {
     position: "absolute",
     inset: 0,
     borderRadius: radius,
     boxShadow: run.skin.shadow,
-    overflow: "hidden",
   };
 
   if (spec.face === "back") {
@@ -721,7 +722,9 @@ export function CardRevealOverlay() {
             height: 0,
             transformStyle: "preserve-3d",
             transform: spec.orbit ? `rotateY(${spec.orbit.rotateY[0]}deg)` : undefined,
-            willChange: "transform",
+            // Only the tornado animates the wrapper; hinting it in the burst
+            // would promote a second layer per card for nothing.
+            willChange: spec.orbit ? "transform" : undefined,
           }}
         >
           <div
