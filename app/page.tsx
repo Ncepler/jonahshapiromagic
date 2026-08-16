@@ -32,6 +32,7 @@ import {
 import Image from "next/image";
 import { useCanHover } from "@/lib/hooks";
 import { site } from "@/site-config";
+import { CardRevealOverlay, triggerCardReveal } from "./CardRevealOverlay";
 import { MagicianCursor } from "./MagicianCursor";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -480,6 +481,26 @@ function StickyBar() {
         <a
           href="#magician-book"
           tabIndex={visible ? undefined : -1}
+          onClick={(e) => {
+            // A modified click is the browser's to handle (open in a new tab,
+            // etc.) — leave the plain anchor alone for those.
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+            e.preventDefault();
+            // Cards spawn dead centre of the screen no matter how far down the
+            // page the visitor is — the bar is fixed, the reveal is fixed.
+            triggerCardReveal({
+              mode: "book",
+              origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+              // Fires once the cards have the screen covered, so the jump
+              // happens behind them; under reduced motion it fires instantly,
+              // and an explicit "smooth" would still animate, hence the flag.
+              onCovered: (reduced) =>
+                document.getElementById("magician-book")?.scrollIntoView({
+                  behavior: reduced ? "instant" : "smooth",
+                  block: "start",
+                }),
+            });
+          }}
           // min-h keeps the tap target at 44px on a phone; the bar is 60px
           // tall, so there's room for it without touching the layout
           className="magician-curtain-btn inline-flex min-h-[44px] items-center text-[0.85rem] font-semibold uppercase tracking-[0.1em]"
@@ -807,7 +828,17 @@ function TrickOfTheDay() {
           onClick={(e) => {
             e.preventDefault();
             const video = TIKTOK_VIDEO_URLS[Math.floor(Math.random() * TIKTOK_VIDEO_URLS.length)];
-            window.open(video, "_blank", "noopener,noreferrer");
+            // Cards fly out of the middle of the card itself. The overlay is
+            // fixed, so the button's viewport rect IS the origin — no scroll
+            // offset to add.
+            const rect = e.currentTarget.getBoundingClientRect();
+            triggerCardReveal({
+              mode: "trick",
+              origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+              // Unchanged from what this button has always done — just held
+              // until the cards have covered the screen and fallen away.
+              onComplete: () => window.open(video, "_blank", "noopener,noreferrer"),
+            });
           }}
           aria-label={`Watch a random trick from ${STAGE_NAME} on TikTok — ${site.tiktokHandle}`}
           className="trick-card relative mx-auto flex w-full max-w-[380px] flex-col items-center justify-center gap-4 overflow-hidden px-6 py-10"
@@ -1238,23 +1269,29 @@ function formatBookingDate(iso: string): string {
   });
 }
 
-// The plain-English recap a visitor can paste into an email if the booking
-// request itself failed to send. Professional but conversational — this is
-// standing in for a sentence someone would actually type.
+// A short, actually-sendable email a visitor can paste in if the booking
+// request itself failed to go through — reads like a person wrote it (greeting,
+// why they're emailing, the details, a sign-off), not a form dump.
 function bookingAttemptToEmailText(a: BookingAttempt): string {
-  const lines: string[] = [];
-  lines.push(`Hi, my name is ${a.name || "[your name]"} and my email is ${a.email || "[your email]"}.`);
-  const eventType = a.event_type || "event";
+  const name = a.name || "[your name]";
+  const email = a.email || "[your email]";
+  const eventType = (a.event_type || "event").toLowerCase();
+  const when = a.date ? ` on ${formatBookingDate(a.date)}` : "";
   const where = a.venue ? ` at ${a.venue}` : "";
-  lines.push(
-    a.date
-      ? `On ${formatBookingDate(a.date)}, I'm having a ${eventType}${where}.`
-      : `I'm having a ${eventType}${where}.`
-  );
-  if (a.headcount) lines.push(`Expecting around ${a.headcount} guests.`);
-  if (a.notes) lines.push(a.notes);
-  lines.push("Let me know if you have availability!");
-  return lines.join(" ");
+  const guests = a.headcount ? `, for around ${a.headcount} guests` : "";
+
+  return [
+    "Hi Jonah,",
+    "",
+    "I tried to book through the site but the form didn't seem to go through, so emailing directly instead.",
+    "",
+    `I'm looking to book a ${eventType}${when}${where}${guests}.${a.notes ? ` ${a.notes}` : ""}`,
+    "",
+    `You can reach me at ${email} — let me know if that date's still open!`,
+    "",
+    "Thanks,",
+    name,
+  ].join("\n");
 }
 
 function Booking() {
@@ -1906,6 +1943,10 @@ function MagicianSite() {
           <InstagramBlock />
         </main>
         <MagicianFooter />
+        {/* Above everything else on the page (9999 vs. the curtain's 900 and
+            the wand cursor's 998/999) — while it's up, it IS the page. Renders
+            nothing until a CTA fires it. */}
+        <CardRevealOverlay />
       </div>
     </MagicianCursor>
   );
