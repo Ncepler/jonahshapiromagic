@@ -1861,6 +1861,9 @@ function InstagramBlock() {
 function MagicianFooter() {
   return (
     <footer role="contentinfo" className="w-full" style={{ background: BG_ELEVATED, borderTop: `1px solid ${BORDER}` }}>
+      <style>{`
+        .footer-studio:hover { color: ${TEXT} !important; }
+      `}</style>
       <div className={`${wrap} py-14 text-center`}>
         <span className="text-[22px] uppercase tracking-[0.04em]" style={{ color: TEXT, fontFamily: DISPLAY }}>
           {NAME}
@@ -1888,11 +1891,24 @@ function MagicianFooter() {
         <p className="mt-6 text-[14px]" style={{ color: TEXT_MUTED }}>
           © 2026 {NAME}. All rights reserved.
         </p>
-        {/* Plain text, not a link — vilas.studio doesn't resolve. No opacity
-            on it either: TEXT_MUTED clears AA on its own (4.75:1 here), but
-            dimming it to 75% dropped this line to 3.16:1. */}
+        {/* The visible text stays "vilas.studio" — that's the studio's name and
+            the credit line reads the way it always has. The href points
+            somewhere else on purpose: vilas.studio isn't a registered domain
+            yet, so linking the name to itself would be a dead link. Point this
+            at the real domain once it exists.
+            No opacity on this line either: TEXT_MUTED clears AA on its own
+            (4.75:1 here), but dimming it to 75% dropped it to 3.16:1. */}
         <p className="mt-2 text-[14px]" style={{ color: TEXT_MUTED }}>
-          Site by vilas.studio
+          Site by{" "}
+          <a
+            href={site.studioUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-studio underline underline-offset-2"
+            style={{ color: TEXT_MUTED, transition: "color 200ms ease-out" }}
+          >
+            vilas.studio
+          </a>
         </p>
       </div>
     </footer>

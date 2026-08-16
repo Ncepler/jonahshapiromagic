@@ -12,6 +12,11 @@ export const siteConfig = {
   // Never rendered on the page — this one has no display fallback, so an
   // unreplaced value makes the route refuse to pretend it delivered.
   bookingEmail: "jonahshapiromagic@gmail.com",
+  // Where the footer's "Site by vilas.studio" credit links to. The visible
+  // text is always "vilas.studio" and isn't derived from this — vilas.studio
+  // isn't a registered domain yet, so linking the name to itself would be a
+  // dead link. Point this at the real domain once it exists.
+  studioUrl: "https://anotherseason.org",
 };
 
 // ── Display fallbacks ───────────────────────────────────────────────────────
@@ -52,4 +57,5 @@ export const site = {
   instagramUrl: resolve(siteConfig.instagramUrl),
   tiktokHandle: siteConfig.tiktokHandle,
   tiktokUrl: siteConfig.tiktokUrl,
+  studioUrl: siteConfig.studioUrl,
 };
