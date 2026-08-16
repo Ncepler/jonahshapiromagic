@@ -24,6 +24,7 @@ export function BookingCard({
   onDecline,
   onArchive,
   onUnarchive,
+  onDelete,
 }: {
   booking: Booking;
   tab: BookingsTab;
@@ -36,9 +37,11 @@ export function BookingCard({
   onDecline: () => void;
   onArchive: () => void;
   onUnarchive: () => void;
+  onDelete: () => void;
 }) {
   const [datePromptOpen, setDatePromptOpen] = useState(false);
   const [chosenDate, setChosenDate] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleCardClick = () => {
     if (armed) {
@@ -87,7 +90,16 @@ export function BookingCard({
           </p>
         </div>
 
-        <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-3">
+        {/* The card itself is a button (click to expand), so every action in
+            here has to stop both events, not just the click: the click is
+            already handled, but a keydown bubbling to the card's own Enter/Space
+            handler means activating Delete from the keyboard would also toggle
+            the card open underneath the confirm. */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          className="flex items-center gap-3"
+        >
           {tab === "pending" &&
             !datePromptOpen &&
             (
@@ -140,6 +152,45 @@ export function BookingCard({
               </button>
             </>
           )}
+
+          {/* Delete is available on every tab but kept visually subordinate —
+              a muted text link, with an inline confirm before it fires, since
+              it's the one action here that can't be undone. Hidden while the
+              accept date-prompt is open so the two don't crowd each other. */}
+          {!datePromptOpen &&
+            (confirmingDelete ? (
+              <span className="flex items-center gap-2 text-[13px]" style={{ color: TEXT_MUTED }}>
+                Delete?
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    onDelete();
+                  }}
+                  className="font-semibold underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  style={{ color: TEXT, outlineColor: ACCENT }}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(false)}
+                  className="underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  style={{ color: TEXT_MUTED, outlineColor: ACCENT }}
+                >
+                  No
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                className="text-[13px] underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{ color: TEXT_MUTED, outlineColor: ACCENT }}
+              >
+                Delete
+              </button>
+            ))}
         </div>
       </div>
 

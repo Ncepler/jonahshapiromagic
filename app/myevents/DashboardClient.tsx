@@ -176,6 +176,24 @@ export function DashboardClient({
     [updateBookingStatus],
   );
 
+  // A hard delete — the row is gone, not moved to a tab. Destructive, so the
+  // card asks for a confirm first (see BookingCard) and this reports the
+  // outcome in a toast rather than failing silently.
+  const deleteBooking = useCallback(
+    async (id: string) => {
+      try {
+        const res = await fetch(`/api/bookings/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(await readError(res, "Could not delete the booking."));
+        setBookings((prev) => prev.filter((b) => b.id !== id));
+        setExpandedBookingId((prev) => (prev === id ? null : prev));
+        addToast("Booking deleted.");
+      } catch (err) {
+        addToast(err instanceof Error ? err.message : "Could not delete the booking.");
+      }
+    },
+    [addToast],
+  );
+
   // The other half of TemplatesSection's arm flow: clicking a booking card
   // while a template is armed copies it (with {{name}} filled in) instead
   // of expanding the card.
@@ -240,6 +258,7 @@ export function DashboardClient({
           onDecline={declineBooking}
           onArchive={declineBooking}
           onUnarchive={unarchiveBooking}
+          onDelete={deleteBooking}
         />
       </main>
       <ToastStack toasts={toasts} />

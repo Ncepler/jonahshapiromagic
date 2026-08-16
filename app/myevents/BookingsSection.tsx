@@ -36,6 +36,7 @@ export function BookingsSection({
   onDecline,
   onArchive,
   onUnarchive,
+  onDelete,
 }: {
   bookings: Booking[];
   tab: BookingsTab;
@@ -49,6 +50,7 @@ export function BookingsSection({
   onDecline: (id: string) => void;
   onArchive: (id: string) => void;
   onUnarchive: (id: string) => void;
+  onDelete: (id: string) => void;
 }) {
   const pendingCount = useMemo(() => bookings.filter((b) => b.status === "pending").length, [bookings]);
   const visible = useMemo(() => bookings.filter((b) => b.status === statusForTab(tab)), [bookings, tab]);
@@ -103,6 +105,7 @@ export function BookingsSection({
               onDecline={() => onDecline(b.id)}
               onArchive={() => onArchive(b.id)}
               onUnarchive={() => onUnarchive(b.id)}
+              onDelete={() => onDelete(b.id)}
             />
           ))}
         </div>
