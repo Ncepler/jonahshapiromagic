@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Cinzel, Cinzel_Decorative, EB_Garamond } from "next/font/google";
 import "./globals.css";
+// TEMPORARY (see app/UnderConstructionOverlay.tsx for rollback instructions):
+import UnderConstructionOverlay from "./UnderConstructionOverlay";
 
 // ── Type system ─────────────────────────────────────────────────────────────
 // Three faces, one job each, and nothing on the site sets a font outside them.
@@ -60,7 +62,12 @@ export default function RootLayout({
       lang="en"
       className={`${cinzelDecorative.variable} ${cinzel.variable} ${ebGaramond.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {/* TEMPORARY: overlay covers the real page below, which is still
+            here untouched. Remove this line + the import above to go live. */}
+        <UnderConstructionOverlay />
+        {children}
+      </body>
     </html>
   );
 }
