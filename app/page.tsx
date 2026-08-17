@@ -48,6 +48,10 @@ import { MagicianCursor } from "./MagicianCursor";
 // Not a transition — a piece of the pricing section itself. Stage fog rolls in
 // from both wings and sits over the numbers until the visitor taps it away.
 import { PricingFog } from "./PricingFog";
+// A whole section, and the only thing on the page that's an actual trick rather
+// than a description of one. Its own file because the routine is a state
+// machine with its own deck, not layout.
+import { PickACard } from "./PickACard";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -1989,6 +1993,11 @@ function MagicianSite() {
           <PhraseBand />
           <TheExperience />
           <TrickOfTheDay />
+          {/* Straight after the TikTok gateway, so the two "here's a trick"
+              beats sit together — watch one, then do one. Kept well clear of
+              The Experience further up, which borrows the same "pick a card"
+              line for its show-type cards. */}
+          <PickACard />
           <WhatItCosts />
           <TheTakeaway />
           <Faq />
